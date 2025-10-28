@@ -82,6 +82,7 @@ impl PrometheusMetricType {
 
 #[derive(FromField)]
 #[darling(attributes(metric))]
+#[allow(dead_code)]
 struct MetricField {
     /// The identifier of the field.
     ident: Option<Ident>,
@@ -92,8 +93,10 @@ struct MetricField {
     /// The label keys to define for the metric.
     labels: Option<Vec<LitStr>>,
     /// The buckets to use for the histogram.
+    /// TODO: Implement this.
     buckets: Option<Vec<LitFloat>>,
     /// The sample rate to use for the histogram.
+    /// TODO: Implement this.
     sample: Option<LitFloat>,
     #[darling(skip)]
     metric_name: String,
@@ -301,7 +304,6 @@ fn build_accessor(field: &MetricField, vis: &syn::Visibility) -> (TokenStream, T
 fn build_accessor_impl(field: &MetricField, vis: &syn::Visibility) -> TokenStream {
     let labels = field.labels();
     let ident = field.identifier();
-    let ty = field.storage_type();
 
     let accessor_name = format_ident!("{}Accessor", snake_to_pascal(&ident.to_string()));
 

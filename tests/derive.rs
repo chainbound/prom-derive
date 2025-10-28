@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use prometheus::{Encoder as _, Registry};
+use prometheus::Encoder as _;
 
 /// This is a struct that contains the metrics for the application.
 ///

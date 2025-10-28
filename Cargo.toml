@@ -1,0 +1,33 @@
+[package]
+name = "prom-derive"
+version = "0.1.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/chainbound/prom-derive"
+exclude = [".claude/", ".github/"]
+
+[package.metadata]
+all-features = true
+rustdoc-args = [
+    "-Zunstable-options",
+    "--generate-link-to-definition",
+    "--show-type-layout",
+]
+
+[dependencies]
+# Metrics
+prometheus = "0.14.0"
+
+# Macro
+proc-macro2 = "1.0"
+syn = "2.0"
+quote = "1.0"
+darling = "0.21"
+
+[dev-dependencies]
+metrics-exporter-prometheus = { version = "0.17.2", default-features = false, features = [
+    "http-listener",
+] }
+
+[lib]
+proc-macro = true

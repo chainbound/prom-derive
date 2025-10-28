@@ -22,7 +22,7 @@ struct AppMetrics {
 
 fn main() {
     // Register with default registry, no static labels
-    // let app_metrics = AppMetrics::default();
+    let app_metrics = AppMetrics::default();
 
     // OR use a custom registry, static labels with builder-style API
     let registry = prometheus::default_registry();

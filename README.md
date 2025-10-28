@@ -1,6 +1,8 @@
 # `prom-derive`
 
-> An attribute macro for generating and using embedded Prometheus metrics with an ergonomic API.
+An attribute macro for generating and using embedded Prometheus metrics with an ergonomic API.
+
+Inspired by [metrics-derive](https://github.com/ithacaxyz/metrics-derive).
 
 ## Usage
 

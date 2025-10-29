@@ -1,8 +1,9 @@
-# `prom-derive`
+# `prometric-derive`
 
 An attribute macro for generating and using embedded Prometheus metrics with an ergonomic API.
 
-Inspired by [metrics-derive](https://github.com/ithacaxyz/metrics-derive).
+Inspired by [metrics-derive](https://github.com/ithacaxyz/metrics-derive), but works directly with [prometheus](https://docs.rs/prometheus/latest/prometheus)
+instead of [metrics](https://docs.rs/metrics/latest/metrics), and supports dynamic labels.
 
 ## Usage
 

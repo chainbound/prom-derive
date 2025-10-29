@@ -72,10 +72,12 @@ fn main() {
 
 Output:
 ```
-# HELP app_current_users The current number of active users.
-# TYPE app_current_users gauge
-app_current_users{host="localhost",port="8080",service=""} 20
-app_current_users{host="localhost",port="8080",service="service-1"} 10
+# HELP app_current_active_users The current number of active users.
+# TYPE app_current_active_users gauge
+app_current_active_users{host="localhost",port="8080",service="service-1"} 20
+# HELP app_errors The total number of errors.
+# TYPE app_errors counter
+app_errors{host="localhost",port="8080"} 1
 # HELP app_http_requests_duration The duration of HTTP requests.
 # TYPE app_http_requests_duration histogram
 app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="0.005"} 0
@@ -94,7 +96,6 @@ app_http_requests_duration_sum{host="localhost",method="GET",path="/",port="8080
 app_http_requests_duration_count{host="localhost",method="GET",path="/",port="8080"} 1
 # HELP app_http_requests_total The total number of HTTP requests.
 # TYPE app_http_requests_total counter
-app_http_requests_total{host="localhost",method="GET",path="",port="8080"} 1
-app_http_requests_total{host="localhost",method="GET",path="/",port="8080"} 1
-app_http_requests_total{host="localhost",method="POST",path="",port="8080"} 2
+app_http_requests_total{host="localhost",method="GET",path="/",port="8080"} 2
+app_http_requests_total{host="localhost",method="POST",path="/",port="8080"} 2
 ```

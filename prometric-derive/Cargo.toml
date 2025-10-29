@@ -1,0 +1,32 @@
+[package]
+name = "prometric-derive"
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+exclude = { workspace = true }
+
+[dependencies]
+# Metrics
+prometheus = { workspace = true }
+
+# Macro
+proc-macro2 = { workspace = true }
+syn = { workspace = true }
+quote = { workspace = true }
+darling = { workspace = true }
+
+[dev-dependencies]
+prometric = { path = "../prometric" }
+
+
+[package.metadata]
+all-features = true
+rustdoc-args = [
+    "-Zunstable-options",
+    "--generate-link-to-definition",
+    "--show-type-layout",
+]
+
+[lib]
+proc-macro = true

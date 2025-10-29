@@ -4,8 +4,9 @@ use syn::{ItemStruct, parse_macro_input};
 use crate::expand::MetricsAttr;
 
 mod expand;
+mod utils;
 
-/// This macro is used to derive the Prometheus metrics for a struct.
+/// This macro generates a struct with embedded Prometheus metrics.
 #[proc_macro_attribute]
 pub fn metrics(attr: TokenStream, item: TokenStream) -> TokenStream {
     // NOTE: We use `proc_macro_attribute` here because we're actually rewriting the struct. Derive macros are additive.

@@ -19,7 +19,7 @@ use prometheus::Encoder as _;
 struct AppMetrics {
     /// The total number of HTTP requests.
     #[metric(rename = "http_requests_total", labels = ["method", "path"])]
-    http_requests_total: IntCounter,
+    http_requests: IntCounter,
 
     /// The duration of HTTP requests.
     #[metric(labels = ["method", "path"], buckets = [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0], sample = 0.1)]
@@ -28,6 +28,10 @@ struct AppMetrics {
     /// The current number of active users.
     #[metric(rename = "current_users", labels = ["service"])]
     current_users: IntGauge,
+
+    /// The total number of errors.
+    #[metric(rename = "errors_total", labels = ["error_type"])]
+    errors: IntCounter,
 }
 
 #[test]
@@ -43,17 +47,14 @@ fn it_works() {
         .with_label("port", "8080")
         .build(); // Build the metrics instance
 
-    app_metrics
-        .http_requests_total()
-        .method("GET")
-        .path("/")
-        .inc();
+    app_metrics.errors().inc();
+    app_metrics.http_requests().method("GET").path("/").inc();
 
     // Increment all GET requests by 1
-    app_metrics.http_requests_total().method("GET").inc();
+    app_metrics.http_requests().method("GET").inc();
 
     // Increment all POST requests by 2
-    app_metrics.http_requests_total().method("POST").inc_by(2);
+    app_metrics.http_requests().method("POST").inc_by(2);
 
     // Set the current number of active users for service-1 to 10
     app_metrics.current_users().service("service-1").set(10);
@@ -75,4 +76,9 @@ fn it_works() {
 
     let output = String::from_utf8(buffer).unwrap();
     println!("\n=== Prometheus Metrics Output ===\n{}", output);
+
+    assert!(output.contains("app_errors_total"));
+    assert!(output.contains("app_current_users"));
+    assert!(output.contains("app_http_requests_duration"));
+    assert!(output.contains("app_http_requests_total"));
 }

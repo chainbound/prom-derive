@@ -288,6 +288,7 @@ fn build_accessor(field: &MetricField, vis: &syn::Visibility) -> (TokenStream, T
 
     let accessor = quote! {
         #[doc = #doc]
+        #[must_use = "This doesn't do anything unless the metric value is changed"]
         #vis fn #ident(&self) -> #accessor_name {
             #accessor_name {
                 inner: &self.#ident,
@@ -311,6 +312,7 @@ fn build_accessor_impl(field: &MetricField, vis: &syn::Visibility) -> TokenStrea
     let label_methods = labels.iter().map(|label| {
         let label_ident = format_ident!("{label}");
         quote! {
+            #[must_use = "This doesn't do anything unless the metric value is changed"]
             #vis fn #label_ident(mut self, value: impl Into<String>) -> Self {
                 self.#label_ident = Some(value.into());
                 self
@@ -470,22 +472,20 @@ pub fn expand(metrics_attr: MetricsAttr, input: &mut ItemStruct) -> Result<Token
         }
 
         impl<'a> #builder_name<'a> {
+            /// Set the registry to use for the metrics.
             #vis fn with_registry(mut self, registry: &'a prometheus::Registry) -> Self {
                 self.registry = registry;
                 self
             }
 
+            /// Add a static label to the metrics struct.
             #vis fn with_label(mut self, key: impl Into<String>, value: impl Into<String>) -> Self {
                 self.labels.insert(key.into(), value.into());
                 self
             }
 
+            /// Build and register the metrics with the registry.
             #vis fn build(self) -> #ident {
-                // TODO
-                // - register all metrics with the registry
-                // - initialize all metrics to 0
-                // - use const labels in the metric opts for the labels that are static
-                // - create metric wrappers for each field, with the correct labels as methods
                 #ident {
                     #(#initializers),*
                 }
@@ -509,7 +509,8 @@ pub fn expand(metrics_attr: MetricsAttr, input: &mut ItemStruct) -> Result<Token
         #(#accessor_impls)*
 
         impl #ident {
-            /// Create a new builder for the metrics struct. It will be initialized with the default registry and no labels.
+            /// Create a new builder for the metrics struct.
+            /// It will be initialized with the default registry and no labels.
             #vis fn builder<'a>() -> #builder_name<'a> {
                 #builder_name {
                     registry: prometheus::default_registry(),

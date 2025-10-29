@@ -78,6 +78,16 @@ impl PrometheusMetricType {
             Self::Histogram => syn::parse_quote!(prometheus::HistogramVec),
         }
     }
+
+    fn as_str(&self) -> &str {
+        match self {
+            Self::IntCounter => "IntCounter",
+            Self::Counter => "Counter",
+            Self::IntGauge => "IntGauge",
+            Self::Gauge => "Gauge",
+            Self::Histogram => "Histogram",
+        }
+    }
 }
 
 #[derive(FromField)]
@@ -263,6 +273,7 @@ fn build_accessor(field: &MetricField, vis: &syn::Visibility) -> (TokenStream, T
     let doc = field.doc();
     let labels = field.labels();
     let ty = field.storage_type();
+    let metric_type = field.metric_type().expect("Metric type should be set");
 
     let accessor_name = format_ident!("{}Accessor", snake_to_pascal(&ident.to_string()));
 
@@ -286,8 +297,15 @@ fn build_accessor(field: &MetricField, vis: &syn::Visibility) -> (TokenStream, T
         }
     };
 
+    let accessor_doc = format!(
+        "{doc}\n\
+        * Metric type: {}\n\
+        * Labels: {}",
+        metric_type.as_str(),
+        labels.join(", ")
+    );
     let accessor = quote! {
-        #[doc = #doc]
+        #[doc = #accessor_doc]
         #[must_use = "This doesn't do anything unless the metric value is changed"]
         #vis fn #ident(&self) -> #accessor_name {
             #accessor_name {

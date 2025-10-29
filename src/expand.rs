@@ -222,7 +222,15 @@ fn build_initializer(field: &MetricField) -> TokenStream {
                     let opts = prometheus::Opts::new(#name, #doc).const_labels(self.labels.clone());
                     let metric = <#ty>::new(opts, &[#(#labels),*]).unwrap();
 
-                    self.registry.register(Box::new(metric.clone())).unwrap();
+                    if let Err(e) = self.registry.register(Box::new(metric.clone())) {
+                        match e {
+                            prometheus::Error::AlreadyReg => {},
+                            _ => panic!("Failed to register metric: {e:?}"),
+                        }
+                    }
+
+
+
                     metric
                 }
             }
@@ -234,7 +242,13 @@ fn build_initializer(field: &MetricField) -> TokenStream {
                     let opts = prometheus::HistogramOpts::new(#name, #doc).const_labels(self.labels.clone());
                     let metric = <#ty>::new(opts, &[#(#labels),*]).unwrap();
 
-                    self.registry.register(Box::new(metric.clone())).unwrap();
+                    if let Err(e) = self.registry.register(Box::new(metric.clone())) {
+                        match e {
+                            prometheus::Error::AlreadyReg => {},
+                            _ => panic!("Failed to register metric: {e:?}"),
+                        }
+                    }
+
                     metric
                 }
             }

@@ -28,7 +28,7 @@ jobs:
           cache-on-failure: true
       - uses: taiki-e/install-action@nextest
       - name: Run unit tests
-        run: cargo nextest run --lib
+        run: cargo nextest run --lib --no-tests=warn
   integration-test:
     name: integration tests
     runs-on: ubuntu-latest

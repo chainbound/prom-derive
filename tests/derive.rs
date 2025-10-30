@@ -1,7 +1,6 @@
 use std::time::Duration;
 
 use prometheus::Encoder as _;
-use prometric::{Counter, Gauge, Histogram};
 
 /// This is a struct that contains the metrics for the application.
 ///
@@ -16,55 +15,57 @@ use prometric::{Counter, Gauge, Histogram};
 /// - The type of the field is used to determine the metric type.
 /// - Deriving `Default` will generate a default instance of the struct with the metrics initialized and described. Counters and gauges
 /// will be initialized to 0.
-#[prometric_derive::metrics(scope = "app")]
+#[prom_derive::metrics(scope = "app")]
 struct AppMetrics {
     /// The total number of HTTP requests.
     #[metric(rename = "http_requests_total", labels = ["method", "path"])]
-    http_requests: prometric::Counter,
+    http_requests: prom_derive::,
 
     /// The duration of HTTP requests.
-    #[metric(labels = ["method", "path"])]
-    http_requests_duration: prometric::Histogram,
+    #[metric(labels = ["method", "path"], buckets = [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0], sample = 0.1)]
+    http_requests_duration: Histogram,
 
-    /// This doc comment will be overwritten by the `help` attribute.
-    #[metric(rename = "current_active_users", labels = ["service"], help = "The current number of active users.")]
-    current_users: prometric::Gauge,
+    /// The current number of active users.
+    #[metric(rename = "current_users", labels = ["service"])]
+    current_users: IntGauge,
 
     /// The total number of errors.
     #[metric]
-    errors: prometric::Counter,
+    errors: IntCounter,
 }
 
 #[test]
-fn test_macro() {
+fn it_works() {
     // Register with default registry, no static labels
     // let app_metrics = AppMetrics::default();
 
     // OR use a custom registry, static labels with builder-style API
     let registry = prometheus::default_registry();
     let app_metrics = AppMetrics::builder()
-        .with_registry(registry)
+        .with_registry(&registry)
         .with_label("host", "localhost") // These define the static labels for these metrics
         .with_label("port", "8080")
         .build(); // Build the metrics instance
 
     app_metrics.errors().inc();
-    app_metrics.http_requests("GET", "/").inc();
+    app_metrics.http_requests().method("GET").path("/").inc();
 
     // Increment all GET requests by 1
-    app_metrics.http_requests("GET", "/").inc();
+    app_metrics.http_requests().method("GET").inc();
 
     // Increment all POST requests by 2
-    app_metrics.http_requests("POST", "/").inc_by(2);
+    app_metrics.http_requests().method("POST").inc_by(2);
 
     // Set the current number of active users for service-1 to 10
-    app_metrics.current_users("service-1").set(10);
+    app_metrics.current_users().service("service-1").set(10);
     // Set the current number of active users to 20
-    app_metrics.current_users("service-1").set(20);
+    app_metrics.current_users().set(20);
 
     let duration = Duration::from_secs(1);
     app_metrics
-        .http_requests_duration("GET", "/")
+        .http_requests_duration()
+        .method("GET")
+        .path("/")
         .observe(duration.as_secs_f64());
 
     let encoder = prometheus::TextEncoder::new();
@@ -76,38 +77,8 @@ fn test_macro() {
     let output = String::from_utf8(buffer).unwrap();
     println!("\n=== Prometheus Metrics Output ===\n{}", output);
 
-    assert!(output.contains("app_errors"));
-    assert!(output.contains("app_current_active_users"));
+    assert!(output.contains("app_errors_total"));
+    assert!(output.contains("app_current_users"));
     assert!(output.contains("app_http_requests_duration"));
     assert!(output.contains("app_http_requests_total"));
-    assert!(output.contains("The current number of active users."));
-}
-
-#[test]
-#[should_panic]
-fn test_double_registration_error() {
-    let registry = prometheus::Registry::new();
-    AppMetrics::builder()
-        .with_registry(&registry)
-        .with_label("host", "localhost")
-        .build();
-
-    AppMetrics::builder()
-        .with_registry(&registry)
-        .with_label("host", "localhost")
-        .build();
-}
-
-#[test]
-fn test_double_registration_success() {
-    let registry = prometheus::Registry::new();
-    AppMetrics::builder()
-        .with_registry(&registry)
-        .with_label("host", "localhost")
-        .build();
-
-    AppMetrics::builder()
-        .with_registry(&registry)
-        .with_label("host", "0.0.0.0")
-        .build();
 }

@@ -54,13 +54,9 @@ impl<N: CounterNumber> Counter<N> {
         let opts = prometheus::Opts::new(name, help).const_labels(const_labels);
         let metric = prometheus::core::GenericCounterVec::<N::Atomic>::new(opts, labels).unwrap();
 
-        // NOTE: We don't treat already registered metrics as an error.
-        if let Err(e) = registry.register(Box::new(metric.clone())) {
-            match e {
-                prometheus::Error::AlreadyReg => {}
-                _ => panic!("Failed to register metric: {e:?}"),
-            }
-        }
+        registry
+            .register(Box::new(metric.clone()))
+            .expect("Failed to register metric, has it already been registered?");
 
         Self { inner: metric }
     }
@@ -94,13 +90,9 @@ impl<N: GaugeNumber> Gauge<N> {
         let opts = prometheus::Opts::new(name, help).const_labels(const_labels);
         let metric = prometheus::core::GenericGaugeVec::<N::Atomic>::new(opts, labels).unwrap();
 
-        // NOTE: We don't treat already registered metrics as an error.
-        if let Err(e) = registry.register(Box::new(metric.clone())) {
-            match e {
-                prometheus::Error::AlreadyReg => {}
-                _ => panic!("Failed to register metric: {e:?}"),
-            }
-        }
+        registry
+            .register(Box::new(metric.clone()))
+            .expect("Failed to register metric, has it already been registered?");
 
         Self { inner: metric }
     }
@@ -142,13 +134,9 @@ impl Histogram {
         let opts = prometheus::HistogramOpts::new(name, help).const_labels(const_labels);
         let metric = prometheus::HistogramVec::new(opts, labels).unwrap();
 
-        // NOTE: We don't treat already registered metrics as an error.
-        if let Err(e) = registry.register(Box::new(metric.clone())) {
-            match e {
-                prometheus::Error::AlreadyReg => {}
-                _ => panic!("Failed to register metric: {e:?}"),
-            }
-        }
+        registry
+            .register(Box::new(metric.clone()))
+            .expect("Failed to register metric, has it already been registered?");
 
         Self { inner: metric }
     }

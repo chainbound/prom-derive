@@ -17,7 +17,7 @@ mod private {
 }
 
 /// A marker trait for numbers that can be used as counter values.
-pub trait CounterNumber: Sized + 'static + private::Sealed {
+pub trait CounterNumber: Sized + 'static + private::Sealed + Clone {
     type Atomic: prometheus::core::Atomic;
 }
 
@@ -30,7 +30,7 @@ impl CounterNumber for f64 {
 }
 
 /// A marker trait for numbers that can be used as gauge values.
-pub trait GaugeNumber: Sized + 'static + private::Sealed {
+pub trait GaugeNumber: Sized + 'static + private::Sealed + Clone {
     type Atomic: prometheus::core::Atomic;
 }
 

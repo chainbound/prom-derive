@@ -1,4 +1,7 @@
 # `prometric`
+[![Lints](https://github.com/chainbound/prometric/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/chainbound/prometric/actions/workflows/lint.yml)
+[![Tests](https://github.com/chainbound/prometric/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/chainbound/prometric/actions/workflows/test.yml)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/chainbound/prometric)
 
 A library for ergonomically generating and using embedded Prometheus metrics in Rust.
 

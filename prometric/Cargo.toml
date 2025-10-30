@@ -1,10 +1,14 @@
 [package]
 name = "prometric"
+description = "Metric types to use with the prometric-derive crate."
 version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
 repository = { workspace = true }
 exclude = { workspace = true }
+readme = { workspace = true }
+keywords = { workspace = true }
+categories = { workspace = true }
 
 [dependencies]
 prometheus = { workspace = true }

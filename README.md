@@ -1,6 +1,6 @@
-# `prometric-derive`
+# `prometric`
 
-An attribute macro for generating and using embedded Prometheus metrics with an ergonomic API.
+A library for ergonomically generating and using embedded Prometheus metrics in Rust.
 
 Inspired by [metrics-derive](https://github.com/ithacaxyz/metrics-derive), but works directly with [prometheus](https://docs.rs/prometheus/latest/prometheus)
 instead of [metrics](https://docs.rs/metrics/latest/metrics), and supports dynamic labels.

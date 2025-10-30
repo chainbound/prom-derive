@@ -43,6 +43,7 @@ impl GaugeNumber for f64 {
 }
 
 /// A counter metric with a generic number type. Default is `u64`, which provides better performance for natural numbers.
+#[derive(Debug, Clone)]
 pub struct Counter<N: CounterNumber = u64> {
     inner: prometheus::core::GenericCounterVec<N::Atomic>,
 }
@@ -79,6 +80,7 @@ impl<N: CounterNumber> Counter<N> {
 }
 
 /// A gauge metric with a generic number type. Default is `i64`, which provides better performance for integers.
+#[derive(Debug, Clone)]
 pub struct Gauge<N: GaugeNumber = i64> {
     inner: prometheus::core::GenericGaugeVec<N::Atomic>,
 }
@@ -123,6 +125,7 @@ impl<N: GaugeNumber> Gauge<N> {
 }
 
 /// A histogram metric.
+#[derive(Debug, Clone)]
 pub struct Histogram {
     inner: prometheus::HistogramVec,
 }

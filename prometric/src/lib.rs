@@ -1,5 +1,9 @@
-//! This module contains the core supported metric types. They are all wrappers around the Prometheus core types.
-//!
+//! This library contains the core supported metric types. They are all wrappers around the Prometheus core types.
+//! These types are primarily used for *defining* metrics, and not for *using* them. The actual usage of metrics
+//! is done through the generated structs from the `prometric-derive` crate.
+//! - [`Counter`]: A counter metric.
+//! - [`Gauge`]: A gauge metric.
+//! - [`Histogram`]: A histogram metric.
 
 use std::collections::HashMap;
 

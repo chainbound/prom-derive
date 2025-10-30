@@ -67,9 +67,21 @@ impl<N: CounterNumber> Counter<N> {
         let opts = prometheus::Opts::new(name, help).const_labels(const_labels);
         let metric = prometheus::core::GenericCounterVec::<N::Atomic>::new(opts, labels).unwrap();
 
-        registry
-            .register(Box::new(metric.clone()))
-            .expect("Failed to register metric, has it already been registered?");
+        let boxed = Box::new(metric.clone());
+        if let Err(e) = registry.register(boxed.clone()) {
+            // If the metric is already registered, overwrite it.
+            if matches!(e, prometheus::Error::AlreadyReg) {
+                registry
+                    .unregister(boxed.clone())
+                    .expect("Failed to unregister metric with name {name");
+
+                registry
+                    .register(boxed)
+                    .expect("Failed to overwrite metric with name {name}");
+            } else {
+                panic!("Failed to register metric with name {name}");
+            }
+        }
 
         Self { inner: metric }
     }
@@ -112,9 +124,21 @@ impl<N: GaugeNumber> Gauge<N> {
         let opts = prometheus::Opts::new(name, help).const_labels(const_labels);
         let metric = prometheus::core::GenericGaugeVec::<N::Atomic>::new(opts, labels).unwrap();
 
-        registry
-            .register(Box::new(metric.clone()))
-            .expect("Failed to register metric, has it already been registered?");
+        let boxed = Box::new(metric.clone());
+        if let Err(e) = registry.register(boxed.clone()) {
+            // If the metric is already registered, overwrite it.
+            if matches!(e, prometheus::Error::AlreadyReg) {
+                registry
+                    .unregister(boxed.clone())
+                    .expect("Failed to unregister metric with name {name");
+
+                registry
+                    .register(boxed)
+                    .expect("Failed to overwrite metric with name {name}");
+            } else {
+                panic!("Failed to register metric with name {name}");
+            }
+        }
 
         Self { inner: metric }
     }
@@ -165,9 +189,21 @@ impl Histogram {
         let opts = prometheus::HistogramOpts::new(name, help).const_labels(const_labels);
         let metric = prometheus::HistogramVec::new(opts, labels).unwrap();
 
-        registry
-            .register(Box::new(metric.clone()))
-            .expect("Failed to register metric, has it already been registered?");
+        let boxed = Box::new(metric.clone());
+        if let Err(e) = registry.register(boxed.clone()) {
+            // If the metric is already registered, overwrite it.
+            if matches!(e, prometheus::Error::AlreadyReg) {
+                registry
+                    .unregister(boxed.clone())
+                    .expect("Failed to unregister metric with name {name");
+
+                registry
+                    .register(boxed)
+                    .expect("Failed to overwrite metric with name {name}");
+            } else {
+                panic!("Failed to register metric with name {name}");
+            }
+        }
 
         Self { inner: metric }
     }

@@ -17,7 +17,7 @@ mod private {
 }
 
 /// A marker trait for numbers that can be used as counter values.
-pub trait CounterNumber: Sized + 'static + private::Sealed + Clone {
+pub trait CounterNumber: Sized + 'static + private::Sealed {
     type Atomic: prometheus::core::Atomic;
 }
 
@@ -30,7 +30,7 @@ impl CounterNumber for f64 {
 }
 
 /// A marker trait for numbers that can be used as gauge values.
-pub trait GaugeNumber: Sized + 'static + private::Sealed + Clone {
+pub trait GaugeNumber: Sized + 'static + private::Sealed {
     type Atomic: prometheus::core::Atomic;
 }
 
@@ -43,9 +43,17 @@ impl GaugeNumber for f64 {
 }
 
 /// A counter metric with a generic number type. Default is `u64`, which provides better performance for natural numbers.
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Counter<N: CounterNumber = u64> {
     inner: prometheus::core::GenericCounterVec<N::Atomic>,
+}
+
+impl<N: CounterNumber> Clone for Counter<N> {
+    fn clone(&self) -> Self {
+        Self {
+            inner: self.inner.clone(),
+        }
+    }
 }
 
 impl<N: CounterNumber> Counter<N> {
@@ -80,9 +88,17 @@ impl<N: CounterNumber> Counter<N> {
 }
 
 /// A gauge metric with a generic number type. Default is `i64`, which provides better performance for integers.
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Gauge<N: GaugeNumber = i64> {
     inner: prometheus::core::GenericGaugeVec<N::Atomic>,
+}
+
+impl<N: GaugeNumber> Clone for Gauge<N> {
+    fn clone(&self) -> Self {
+        Self {
+            inner: self.inner.clone(),
+        }
+    }
 }
 
 impl<N: GaugeNumber> Gauge<N> {
@@ -125,9 +141,17 @@ impl<N: GaugeNumber> Gauge<N> {
 }
 
 /// A histogram metric.
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Histogram {
     inner: prometheus::HistogramVec,
+}
+
+impl Clone for Histogram {
+    fn clone(&self) -> Self {
+        Self {
+            inner: self.inner.clone(),
+        }
+    }
 }
 
 impl Histogram {

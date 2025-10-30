@@ -8,6 +8,11 @@ A library for ergonomically generating and using embedded Prometheus metrics in 
 Inspired by [metrics-derive](https://github.com/ithacaxyz/metrics-derive), but works directly with [prometheus](https://docs.rs/prometheus/latest/prometheus)
 instead of [metrics](https://docs.rs/metrics/latest/metrics), and supports dynamic labels.
 
+| Crate | crates.io | docs.rs |
+|-------|-----------|---------|
+| `prometric` | [![crates.io](https://img.shields.io/crates/v/prometric.svg)](https://crates.io/crates/prometric) | [![docs.rs](https://docs.rs/prometric/badge.svg)](https://docs.rs/prometric) |
+| `prometric-derive` | [![crates.io](https://img.shields.io/crates/v/prometric-derive.svg)](https://crates.io/crates/prometric-derive) | [![docs.rs](https://docs.rs/prometric-derive/badge.svg)](https://docs.rs/prometric-derive) |
+
 ## Usage
 ```rust
 use prometric_derive::metrics;

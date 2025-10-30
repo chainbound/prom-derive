@@ -320,10 +320,10 @@ pub fn expand(metrics_attr: MetricsAttr, input: &mut ItemStruct) -> Result<Token
             MetricBuilder::try_from(field, &metrics_attr.scope.as_ref().unwrap().value())?;
 
         initializers.push(builder.build_initializer());
-        let (definition, accessor) = builder.build_accessor(&vis);
+        let (definition, accessor) = builder.build_accessor(vis);
         definitions.push(definition);
         accessors.push(accessor);
-        accessor_impls.push(builder.build_accessor_impl(&vis));
+        accessor_impls.push(builder.build_accessor_impl(vis));
 
         // Remove the metric attribute from the field.
         field

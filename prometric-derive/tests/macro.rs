@@ -82,3 +82,32 @@ fn test_macro() {
     assert!(output.contains("app_http_requests_total"));
     assert!(output.contains("The current number of active users."));
 }
+
+#[test]
+#[should_panic]
+fn test_double_registration_error() {
+    let registry = prometheus::Registry::new();
+    AppMetrics::builder()
+        .with_registry(&registry)
+        .with_label("host", "localhost")
+        .build();
+
+    AppMetrics::builder()
+        .with_registry(&registry)
+        .with_label("host", "localhost")
+        .build();
+}
+
+#[test]
+fn test_double_registration_success() {
+    let registry = prometheus::Registry::new();
+    AppMetrics::builder()
+        .with_registry(&registry)
+        .with_label("host", "localhost")
+        .build();
+
+    AppMetrics::builder()
+        .with_registry(&registry)
+        .with_label("host", "0.0.0.0")
+        .build();
+}

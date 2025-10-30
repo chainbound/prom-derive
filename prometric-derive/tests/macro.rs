@@ -23,7 +23,7 @@ struct AppMetrics {
     http_requests: prometric::Counter,
 
     /// The duration of HTTP requests.
-    #[metric(labels = ["method", "path"])]
+    #[metric(labels = ["method", "path"], buckets = [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0])]
     http_requests_duration: prometric::Histogram,
 
     /// This doc comment will be overwritten by the `help` attribute.

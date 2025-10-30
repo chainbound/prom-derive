@@ -68,6 +68,8 @@ struct MetricBuilder {
     ty: MetricType,
     /// The label keys to define for the metric.
     labels: Option<Vec<String>>,
+    /// The buckets to use for the histogram.
+    buckets: Option<Vec<LitFloat>>,
     /// The full name of the metric.
     /// = scope + separator + identifier || rename.
     full_name: String,
@@ -131,6 +133,7 @@ impl MetricBuilder {
             labels: metric_field
                 .labels
                 .map(|labels| labels.iter().map(|label| label.value()).collect()),
+            buckets: metric_field.buckets,
             full_name,
             help,
         })
@@ -140,6 +143,15 @@ impl MetricBuilder {
         self.labels.clone().unwrap_or_default()
     }
 
+    fn buckets(&self) -> Option<Vec<f64>> {
+        self.buckets.clone().map(|buckets| {
+            buckets
+                .iter()
+                .map(|bucket| bucket.base10_parse().unwrap())
+                .collect()
+        })
+    }
+
     /// Build the initializer for the metric field.
     fn build_initializer(&self) -> TokenStream {
         let ident = &self.identifier;
@@ -147,9 +159,22 @@ impl MetricBuilder {
         let ty = self.ty.ident();
         let name = &self.full_name;
         let labels = self.labels();
+        let buckets = self.buckets();
 
-        quote! {
-            #ident: <#ty>::new(self.registry, #name, #help, &[#(#labels),*], self.labels.clone())
+        if let MetricType::Histogram(_) = &self.ty {
+            let buckets = if let Some(ref buckets) = buckets {
+                quote! { Some(vec![#(#buckets),*]) }
+            } else {
+                quote! { None }
+            };
+
+            quote! {
+                #ident: <#ty>::new(self.registry, #name, #help, &[#(#labels),*], self.labels.clone(), #buckets)
+            }
+        } else {
+            quote! {
+                #ident: <#ty>::new(self.registry, #name, #help, &[#(#labels),*], self.labels.clone())
+            }
         }
     }
 
@@ -297,7 +322,6 @@ struct MetricField {
     /// The help string to use for the metric. Takes precedence over the doc attribute.
     help: Option<String>,
     /// The buckets to use for the histogram.
-    /// TODO: Implement this.
     buckets: Option<Vec<LitFloat>>,
     /// The sample rate to use for the histogram.
     /// TODO: Implement this.

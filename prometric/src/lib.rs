@@ -74,11 +74,11 @@ impl<N: CounterNumber> Counter<N> {
             if matches!(e, prometheus::Error::AlreadyReg) {
                 registry
                     .unregister(boxed.clone())
-                    .expect(&format!("Failed to unregister metric {id}"));
+                    .unwrap_or_else(|_| panic!("Failed to unregister metric {id}"));
 
                 registry
                     .register(boxed)
-                    .expect(&format!("Failed to overwrite metric {id}"));
+                    .unwrap_or_else(|_| panic!("Failed to overwrite metric {id}"));
             } else {
                 panic!("Failed to register metric {id}");
             }
@@ -132,11 +132,11 @@ impl<N: GaugeNumber> Gauge<N> {
             if matches!(e, prometheus::Error::AlreadyReg) {
                 registry
                     .unregister(boxed.clone())
-                    .expect(&format!("Failed to unregister metric {id}"));
+                    .unwrap_or_else(|_| panic!("Failed to unregister metric {id}"));
 
                 registry
                     .register(boxed)
-                    .expect(&format!("Failed to overwrite metric {id}"));
+                    .unwrap_or_else(|_| panic!("Failed to overwrite metric {id}"));
             } else {
                 panic!("Failed to register metric {id}");
             }
@@ -198,11 +198,11 @@ impl Histogram {
             if matches!(e, prometheus::Error::AlreadyReg) {
                 registry
                     .unregister(boxed.clone())
-                    .expect(&format!("Failed to unregister metric {id}"));
+                    .unwrap_or_else(|_| panic!("Failed to unregister metric {id}"));
 
                 registry
                     .register(boxed)
-                    .expect(&format!("Failed to overwrite metric {id}"));
+                    .unwrap_or_else(|_| panic!("Failed to overwrite metric {id}"));
             } else {
                 panic!("Failed to register metric {id}");
             }

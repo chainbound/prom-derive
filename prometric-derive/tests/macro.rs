@@ -84,21 +84,6 @@ fn test_macro() {
 }
 
 #[test]
-#[should_panic]
-fn test_double_registration_error() {
-    let registry = prometheus::Registry::new();
-    AppMetrics::builder()
-        .with_registry(&registry)
-        .with_label("host", "localhost")
-        .build();
-
-    AppMetrics::builder()
-        .with_registry(&registry)
-        .with_label("host", "localhost")
-        .build();
-}
-
-#[test]
 fn test_double_registration_success() {
     let registry = prometheus::Registry::new();
     AppMetrics::builder()

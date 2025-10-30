@@ -169,10 +169,37 @@ impl MetricBuilder {
         }
     }
 
+    fn accessor_doc(&self, labels: &[String]) -> String {
+        let help = &self.help;
+        let mut doc_builder = format!(
+            "{help}\n\
+            * Metric type: [prometric::{}]",
+            self.ty,
+        );
+
+        if !labels.is_empty() {
+            doc_builder.push_str(&format!("\n* Labels: {}\n", labels.join(", ")));
+        }
+
+        if let MetricType::Histogram(_) = &self.ty {
+            if let Some(buckets) = &self.buckets {
+                let bucket_str = buckets
+                    .iter()
+                    .map(|lit| lit.base10_digits())
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                doc_builder.push_str(&format!("\n* Buckets: [{}]", bucket_str));
+            } else {
+                doc_builder.push_str("\n* Buckets: [prometheus::DEFAULT_BUCKETS]");
+            }
+        }
+
+        doc_builder
+    }
+
     /// Build the accessor definition and implementation for the metric field.
     fn build_accessor(&self, vis: &syn::Visibility) -> (TokenStream, TokenStream) {
         let ident = &self.identifier;
-        let help = &self.help;
         let labels = self.labels();
         let ty = self.ty.ident();
 
@@ -197,13 +224,7 @@ impl MetricBuilder {
             }
         };
 
-        let accessor_doc = format!(
-            "{help}\n\
-            * Metric type: {}\n\
-            * Labels: {}",
-            self.ty,
-            labels.join(", ")
-        );
+        let accessor_doc = self.accessor_doc(&labels);
 
         let label_assignments = labels.iter().map(|label| {
             let label_ident = format_ident!("{label}");

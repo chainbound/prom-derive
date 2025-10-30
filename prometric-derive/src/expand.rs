@@ -143,15 +143,6 @@ impl MetricBuilder {
         self.labels.clone().unwrap_or_default()
     }
 
-    fn buckets(&self) -> Option<Vec<f64>> {
-        self.buckets.clone().map(|buckets| {
-            buckets
-                .iter()
-                .map(|bucket| bucket.base10_parse().unwrap())
-                .collect()
-        })
-    }
-
     /// Build the initializer for the metric field.
     fn build_initializer(&self) -> TokenStream {
         let ident = &self.identifier;
@@ -159,10 +150,10 @@ impl MetricBuilder {
         let ty = self.ty.ident();
         let name = &self.full_name;
         let labels = self.labels();
-        let buckets = self.buckets();
+        let buckets = &self.buckets;
 
         if let MetricType::Histogram(_) = &self.ty {
-            let buckets = if let Some(ref buckets) = buckets {
+            let buckets = if let Some(buckets) = buckets {
                 quote! { Some(vec![#(#buckets),*]) }
             } else {
                 quote! { None }

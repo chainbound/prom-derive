@@ -187,8 +187,12 @@ impl Histogram {
         help: &str,
         labels: &[&str],
         const_labels: HashMap<String, String>,
+        buckets: Option<Vec<f64>>,
     ) -> Self {
-        let opts = prometheus::HistogramOpts::new(name, help).const_labels(const_labels);
+        let buckets = buckets.unwrap_or(prometheus::DEFAULT_BUCKETS.to_vec());
+        let opts = prometheus::HistogramOpts::new(name, help)
+            .const_labels(const_labels)
+            .buckets(buckets);
         let metric = prometheus::HistogramVec::new(opts, labels).unwrap();
 
         let boxed = Box::new(metric.clone());

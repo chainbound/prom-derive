@@ -23,8 +23,9 @@ mod utils;
 ///     #[metric(rename = "http_requests_total", labels = ["method", "path"])]
 ///     http_requests: Counter,
 ///
+///     // For histograms, the `buckets` attribute is optional. It will default to [prometheus::DEFAULT_BUCKETS] if not provided.
 ///     /// The duration of HTTP requests.
-///     #[metric(labels = ["method", "path"])]
+///     #[metric(labels = ["method", "path"], buckets = [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0])]
 ///     http_requests_duration: Histogram,
 ///
 ///     /// This doc comment will be overwritten by the `help` attribute.
@@ -68,7 +69,6 @@ mod utils;
 /// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="1"} 1
 /// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="2.5"} 1
 /// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="5"} 1
-/// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="10"} 1
 /// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="+Inf"} 1
 /// app_http_requests_duration_sum{host="localhost",method="GET",path="/",port="8080"} 1
 /// app_http_requests_duration_count{host="localhost",method="GET",path="/",port="8080"} 1

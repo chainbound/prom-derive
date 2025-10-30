@@ -68,6 +68,8 @@ struct MetricBuilder {
     ty: MetricType,
     /// The label keys to define for the metric.
     labels: Option<Vec<String>>,
+    /// The buckets to use for the histogram.
+    buckets: Option<Vec<LitFloat>>,
     /// The full name of the metric.
     /// = scope + separator + identifier || rename.
     full_name: String,
@@ -131,6 +133,7 @@ impl MetricBuilder {
             labels: metric_field
                 .labels
                 .map(|labels| labels.iter().map(|label| label.value()).collect()),
+            buckets: metric_field.buckets,
             full_name,
             help,
         })
@@ -147,16 +150,56 @@ impl MetricBuilder {
         let ty = self.ty.ident();
         let name = &self.full_name;
         let labels = self.labels();
+        let buckets = &self.buckets;
 
-        quote! {
-            #ident: <#ty>::new(self.registry, #name, #help, &[#(#labels),*], self.labels.clone())
+        if let MetricType::Histogram(_) = &self.ty {
+            let buckets = if let Some(buckets) = buckets {
+                quote! { Some(vec![#(#buckets),*]) }
+            } else {
+                quote! { None }
+            };
+
+            quote! {
+                #ident: <#ty>::new(self.registry, #name, #help, &[#(#labels),*], self.labels.clone(), #buckets)
+            }
+        } else {
+            quote! {
+                #ident: <#ty>::new(self.registry, #name, #help, &[#(#labels),*], self.labels.clone())
+            }
         }
+    }
+
+    fn accessor_doc(&self, labels: &[String]) -> String {
+        let help = &self.help;
+        let mut doc_builder = format!(
+            "{help}\n\
+            * Metric type: [prometric::{}]",
+            self.ty,
+        );
+
+        if !labels.is_empty() {
+            doc_builder.push_str(&format!("\n* Labels: {}\n", labels.join(", ")));
+        }
+
+        if let MetricType::Histogram(_) = &self.ty {
+            if let Some(buckets) = &self.buckets {
+                let bucket_str = buckets
+                    .iter()
+                    .map(|lit| lit.base10_digits())
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                doc_builder.push_str(&format!("\n* Buckets: [{}]", bucket_str));
+            } else {
+                doc_builder.push_str("\n* Buckets: [prometheus::DEFAULT_BUCKETS]");
+            }
+        }
+
+        doc_builder
     }
 
     /// Build the accessor definition and implementation for the metric field.
     fn build_accessor(&self, vis: &syn::Visibility) -> (TokenStream, TokenStream) {
         let ident = &self.identifier;
-        let help = &self.help;
         let labels = self.labels();
         let ty = self.ty.ident();
 
@@ -181,13 +224,7 @@ impl MetricBuilder {
             }
         };
 
-        let accessor_doc = format!(
-            "{help}\n\
-            * Metric type: {}\n\
-            * Labels: {}",
-            self.ty,
-            labels.join(", ")
-        );
+        let accessor_doc = self.accessor_doc(&labels);
 
         let label_assignments = labels.iter().map(|label| {
             let label_ident = format_ident!("{label}");
@@ -297,7 +334,6 @@ struct MetricField {
     /// The help string to use for the metric. Takes precedence over the doc attribute.
     help: Option<String>,
     /// The buckets to use for the histogram.
-    /// TODO: Implement this.
     buckets: Option<Vec<LitFloat>>,
     /// The sample rate to use for the histogram.
     /// TODO: Implement this.

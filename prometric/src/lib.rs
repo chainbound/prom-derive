@@ -69,17 +69,18 @@ impl<N: CounterNumber> Counter<N> {
 
         let boxed = Box::new(metric.clone());
         if let Err(e) = registry.register(boxed.clone()) {
+            let id = format!("{}, Labels: {}", name, labels.join(", "),);
             // If the metric is already registered, overwrite it.
             if matches!(e, prometheus::Error::AlreadyReg) {
                 registry
                     .unregister(boxed.clone())
-                    .expect("Failed to unregister metric with name {name");
+                    .expect(&format!("Failed to unregister metric {id}"));
 
                 registry
                     .register(boxed)
-                    .expect("Failed to overwrite metric with name {name}");
+                    .expect(&format!("Failed to overwrite metric {id}"));
             } else {
-                panic!("Failed to register metric with name {name}");
+                panic!("Failed to register metric {id}");
             }
         }
 
@@ -126,17 +127,18 @@ impl<N: GaugeNumber> Gauge<N> {
 
         let boxed = Box::new(metric.clone());
         if let Err(e) = registry.register(boxed.clone()) {
+            let id = format!("{}, Labels: {}", name, labels.join(", "),);
             // If the metric is already registered, overwrite it.
             if matches!(e, prometheus::Error::AlreadyReg) {
                 registry
                     .unregister(boxed.clone())
-                    .expect("Failed to unregister metric with name {name");
+                    .expect(&format!("Failed to unregister metric {id}"));
 
                 registry
                     .register(boxed)
-                    .expect("Failed to overwrite metric with name {name}");
+                    .expect(&format!("Failed to overwrite metric {id}"));
             } else {
-                panic!("Failed to register metric with name {name}");
+                panic!("Failed to register metric {id}");
             }
         }
 
@@ -191,17 +193,18 @@ impl Histogram {
 
         let boxed = Box::new(metric.clone());
         if let Err(e) = registry.register(boxed.clone()) {
+            let id = format!("{}, Labels: {}", name, labels.join(", "),);
             // If the metric is already registered, overwrite it.
             if matches!(e, prometheus::Error::AlreadyReg) {
                 registry
                     .unregister(boxed.clone())
-                    .expect("Failed to unregister metric with name {name");
+                    .expect(&format!("Failed to unregister metric {id}"));
 
                 registry
                     .register(boxed)
-                    .expect("Failed to overwrite metric with name {name}");
+                    .expect(&format!("Failed to overwrite metric {id}"));
             } else {
-                panic!("Failed to register metric with name {name}");
+                panic!("Failed to register metric {id}");
             }
         }
 

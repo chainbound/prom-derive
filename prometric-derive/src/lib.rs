@@ -23,6 +23,7 @@ mod utils;
 ///     #[metric(rename = "http_requests_total", labels = ["method", "path"])]
 ///     http_requests: Counter,
 ///
+///     // For histograms, the `buckets` attribute is optional. It will default to [prometheus::DEFAULT_BUCKETS] if not provided.
 ///     /// The duration of HTTP requests.
 ///     #[metric(labels = ["method", "path"], buckets = [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0])]
 ///     http_requests_duration: Histogram,

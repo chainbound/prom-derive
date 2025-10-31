@@ -21,12 +21,6 @@ impl<T> IntoAtomic<T> for T {
 }
 
 /// Macro to implement `IntoAtomic<Out>` for a type `In`.
-///
-/// # Example
-/// ```
-/// impl_into_atomic!(u32 => u64);
-/// ```
-#[macro_export]
 macro_rules! impl_into_atomic {
     ($in_ty:ty => $out_ty:ty) => {
         impl $crate::IntoAtomic<$out_ty> for $in_ty {

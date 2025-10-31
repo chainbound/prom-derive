@@ -28,7 +28,11 @@ struct AppMetrics {
 
     /// This doc comment will be overwritten by the `help` attribute.
     #[metric(rename = "current_active_users", labels = ["service"], help = "The current number of active users.")]
-    current_users: prometric::Gauge,
+    current_users: prometric::Gauge<u64>,
+
+    #[metric(rename = "account_balance", labels = ["account_id"])]
+    /// The balance of the account, in dollars. Uses a floating point number.
+    account_balance: prometric::Gauge<f64>,
 
     /// The total number of errors.
     #[metric]
@@ -48,7 +52,6 @@ fn test_macro() {
         .with_label("port", "8080")
         .build(); // Build the metrics instance
 
-    app_metrics.errors().inc();
     app_metrics.http_requests("GET", "/").inc();
 
     // Increment all GET requests by 1
@@ -67,6 +70,9 @@ fn test_macro() {
         .http_requests_duration("GET", "/")
         .observe(duration.as_secs_f64());
 
+    app_metrics.account_balance("1234567890").set(-12.2);
+    app_metrics.errors().inc();
+
     let encoder = prometheus::TextEncoder::new();
     let metric_families = registry.gather(); // Wait, need to expose registry
 
@@ -76,10 +82,11 @@ fn test_macro() {
     let output = String::from_utf8(buffer).unwrap();
     println!("\n=== Prometheus Metrics Output ===\n{}", output);
 
-    assert!(output.contains("app_errors"));
     assert!(output.contains("app_current_active_users"));
     assert!(output.contains("app_http_requests_duration"));
     assert!(output.contains("app_http_requests_total"));
+    assert!(output.contains("app_errors"));
+    assert!(output.contains("app_account_balance"));
     assert!(output.contains("The current number of active users."));
 }
 

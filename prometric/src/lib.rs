@@ -16,6 +16,12 @@ mod private {
     impl Sealed for f64 {}
 }
 
+/// The default number type for counters.
+pub type CounterDefault = u64;
+
+/// The default number type for gauges.
+pub type GaugeDefault = u64;
+
 /// A marker trait for numbers that can be used as counter values.
 pub trait CounterNumber: Sized + 'static + private::Sealed {
     type Atomic: prometheus::core::Atomic;
@@ -42,9 +48,13 @@ impl GaugeNumber for f64 {
     type Atomic = prometheus::core::AtomicF64;
 }
 
+impl GaugeNumber for u64 {
+    type Atomic = prometheus::core::AtomicU64;
+}
+
 /// A counter metric with a generic number type. Default is `u64`, which provides better performance for natural numbers.
 #[derive(Debug)]
-pub struct Counter<N: CounterNumber = u64> {
+pub struct Counter<N: CounterNumber = CounterDefault> {
     inner: prometheus::core::GenericCounterVec<N::Atomic>,
 }
 
@@ -102,7 +112,7 @@ impl<N: CounterNumber> Counter<N> {
 
 /// A gauge metric with a generic number type. Default is `i64`, which provides better performance for integers.
 #[derive(Debug)]
-pub struct Gauge<N: GaugeNumber = i64> {
+pub struct Gauge<N: GaugeNumber = GaugeDefault> {
     inner: prometheus::core::GenericGaugeVec<N::Atomic>,
 }
 

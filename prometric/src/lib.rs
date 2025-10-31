@@ -45,17 +45,17 @@ macro_rules! impl_into_atomic {
     };
 }
 
-// safe casts to u64
+// auto casts to u64
 impl_into_atomic!(i32 => u64);
 impl_into_atomic!(u32 => u64);
 impl_into_atomic!(usize => u64);
 
-// safe casts to i64
+// auto casts to i64
 impl_into_atomic!(i32 => i64);
 impl_into_atomic!(u32 => i64);
 impl_into_atomic!(usize => i64);
 
-// safe casts to f64
+// auto casts to f64
 impl_into_atomic!(i32 => f64);
 impl_into_atomic!(u32 => f64);
 impl_into_atomic!(usize => f64);

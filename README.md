@@ -52,6 +52,7 @@ let metrics = AppMetrics::builder().with_label("host", "localhost").with_label("
 metrics.http_requests("GET", "/").inc();
 metrics.http_requests_duration("GET", "/").observe(1.0);
 metrics.current_users("service-1").set(10);
+metrics.account_balance("1234567890").set(-12.2);
 metrics.errors().inc();
 ```
 

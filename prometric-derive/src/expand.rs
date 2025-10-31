@@ -85,10 +85,7 @@ impl MetricType {
             "Histogram" => Ok(Self::Histogram(ident.clone())),
             other => Err(syn::Error::new_spanned(
                 ident,
-                format!(
-                    "Unsupported metric type '{}'. Use Counter, Gauge, or Histogram",
-                    other
-                ),
+                format!("Unsupported metric type '{other}'. Use Counter, Gauge, or Histogram"),
             )),
         }
     }
@@ -157,7 +154,7 @@ impl MetricBuilder {
             .unwrap_or(&field.ident.as_ref().unwrap().to_string())
             .to_owned();
 
-        let full_name = format!("{}{}{}", scope, DEFAULT_SEPARATOR, metric_name);
+        let full_name = format!("{scope}{DEFAULT_SEPARATOR}{metric_name}");
 
         let Type::Path(type_path) = &metric_field.ty else {
             return Err(syn::Error::new_spanned(field, "Expected a path type"));
@@ -230,7 +227,7 @@ impl MetricBuilder {
                     .map(|lit| lit.base10_digits())
                     .collect::<Vec<_>>()
                     .join(", ");
-                doc_builder.push_str(&format!("\n* Buckets: [{}]", bucket_str));
+                doc_builder.push_str(&format!("\n* Buckets: [{bucket_str}]"));
             } else {
                 doc_builder.push_str("\n* Buckets: [prometheus::DEFAULT_BUCKETS]");
             }
@@ -257,7 +254,7 @@ impl MetricBuilder {
             quote! { #label_ident: impl Into<String> }
         });
 
-        let def_doc = format!("Accessor for the `{}` metric.", ident);
+        let def_doc = format!("Accessor for the `{ident}` metric.");
         let definition = quote! {
             #[doc = #def_doc]
             #vis struct #accessor_name<'a> {
@@ -301,7 +298,6 @@ impl MetricBuilder {
             quote! { let labels = &[#(self.#label_idents.as_str()),*]; }
         };
 
-        // TODO(mempirate): Implement the different number types by extracting the generic.
         let terminal_methods = match ty {
             MetricType::Counter(_, counter_ty) => quote! {
                 #vis fn inc(&self) {
@@ -311,7 +307,7 @@ impl MetricBuilder {
 
                 #vis fn inc_by(&self, value: #counter_ty) {
                     #labels_array
-                    self.inner.inc_by(labels, value);
+                    self.inner.inc_by(labels, value.into_atomic());
                 }
 
                 #vis fn reset(&self) {
@@ -332,23 +328,26 @@ impl MetricBuilder {
 
                 #vis fn add(&self, value: #gauge_ty) {
                     #labels_array
-                    self.inner.add(labels, value);
+                    self.inner.add(labels, value.into_atomic());
                 }
 
                 #vis fn sub(&self, value: #gauge_ty) {
                     #labels_array
-                    self.inner.sub(labels, value);
+                    self.inner.sub(labels, value.into_atomic());
                 }
 
                 #vis fn set(&self, value: #gauge_ty) {
                     #labels_array
-                    self.inner.set(labels, value);
+                    self.inner.set(labels, value.into_atomic());
                 }
             },
             MetricType::Histogram(_) => quote! {
-                #vis fn observe(&self, value: f64) {
+                #vis fn observe<V>(&self, value: V)
+                where
+                    V: prometric::IntoAtomic<f64>,
+                {
                     #labels_array
-                    self.inner.observe(labels, value);
+                    self.inner.observe(labels, value.into_atomic());
                 }
             },
         };

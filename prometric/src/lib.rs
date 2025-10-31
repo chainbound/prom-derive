@@ -7,6 +7,61 @@
 
 use std::collections::HashMap;
 
+/// Internal conversion trait to allow ergonomic value passing (e.g., `u32`, `usize`).
+/// This enables library users to call methods like `.set(queue.len())` without manual casts.
+pub trait IntoAtomic<T> {
+    fn into_atomic(self) -> T;
+}
+
+impl<T> IntoAtomic<T> for T {
+    #[inline]
+    fn into_atomic(self) -> T {
+        self
+    }
+}
+
+/// Macro to implement `IntoAtomic<Out>` for a type `In`.
+///
+/// # Example
+/// ```
+/// impl_into_atomic!(u32 => u64);
+/// ```
+#[macro_export]
+macro_rules! impl_into_atomic {
+    ($in_ty:ty => $out_ty:ty) => {
+        impl $crate::IntoAtomic<$out_ty> for $in_ty {
+            #[inline]
+            fn into_atomic(self) -> $out_ty {
+                self as $out_ty
+            }
+        }
+    };
+}
+
+// to u64
+impl_into_atomic!(i32 => u64);
+impl_into_atomic!(u32 => u64);
+impl_into_atomic!(i64 => u64);
+impl_into_atomic!(usize => u64);
+impl_into_atomic!(f32 => u64);
+impl_into_atomic!(f64 => u64);
+
+// to i64
+impl_into_atomic!(i32 => i64);
+impl_into_atomic!(u32 => i64);
+impl_into_atomic!(u64 => i64);
+impl_into_atomic!(usize => i64);
+impl_into_atomic!(f32 => i64);
+impl_into_atomic!(f64 => i64);
+
+// to f64
+impl_into_atomic!(i32 => f64);
+impl_into_atomic!(u32 => f64);
+impl_into_atomic!(u64 => f64);
+impl_into_atomic!(i64 => f64);
+impl_into_atomic!(f32 => f64);
+impl_into_atomic!(usize => f64);
+
 /// Sealed trait to prevent outside code from implementing the metric types.
 mod private {
     pub trait Sealed {}

@@ -1,7 +1,10 @@
 use darling::{FromField, FromMeta};
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
-use syn::{Field, Ident, ItemStruct, LitFloat, LitStr, Result, Type};
+use syn::{
+    Field, GenericArgument, Ident, ItemStruct, LitFloat, LitStr, PathArguments, PathSegment,
+    Result, Type,
+};
 
 use crate::utils::snake_to_pascal;
 
@@ -20,26 +23,65 @@ pub(super) struct MetricsAttr {
 }
 
 enum MetricType {
-    Counter(Ident),
-    Gauge(Ident),
+    Counter(Ident, Type),
+    Gauge(Ident, Type),
     Histogram(Ident),
 }
 
 impl std::fmt::Display for MetricType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Counter(_) => write!(f, "Counter"),
-            Self::Gauge(_) => write!(f, "Gauge"),
+            Self::Counter(_, _) => write!(f, "Counter"),
+            Self::Gauge(_, _) => write!(f, "Gauge"),
             Self::Histogram(_) => write!(f, "Histogram"),
         }
     }
 }
 
 impl MetricType {
-    fn from_ident(ident: &Ident) -> Result<Self> {
+    /// Parse the metric type (and generic argument) from a path segment.
+    fn from_segment(segment: &PathSegment) -> Result<Self> {
+        let ident = segment.ident.clone();
+
+        // Parse the potential generic argument.
+        let maybe_generic = match &segment.arguments {
+            PathArguments::None => None,
+            PathArguments::AngleBracketed(generic) => {
+                if generic.args.len() != 1 {
+                    return Err(syn::Error::new_spanned(
+                        segment,
+                        "Expected a single generic argument",
+                    ));
+                }
+
+                let arg = &generic.args[0];
+                if let GenericArgument::Type(ty) = arg {
+                    Some(ty.clone())
+                } else {
+                    return Err(syn::Error::new_spanned(arg, "Expected a type argument"));
+                }
+            }
+            PathArguments::Parenthesized(_) => {
+                return Err(syn::Error::new_spanned(
+                    segment,
+                    "Expected a generic type argument",
+                ));
+            }
+        };
+
         match ident.to_string().as_str() {
-            "Counter" => Ok(Self::Counter(ident.clone())),
-            "Gauge" => Ok(Self::Gauge(ident.clone())),
+            "Counter" => {
+                // NOTE: Use the prometric type alias here so it remains consistent.
+                let generic =
+                    maybe_generic.unwrap_or(syn::parse_str("prometric::CounterDefault").unwrap());
+                Ok(Self::Counter(ident.clone(), generic))
+            }
+            "Gauge" => {
+                // NOTE: Use the prometric type alias here so it remains consistent.
+                let generic =
+                    maybe_generic.unwrap_or(syn::parse_str("prometric::GaugeDefault").unwrap());
+                Ok(Self::Gauge(ident.clone(), generic))
+            }
             "Histogram" => Ok(Self::Histogram(ident.clone())),
             other => Err(syn::Error::new_spanned(
                 ident,
@@ -51,11 +93,11 @@ impl MetricType {
         }
     }
 
-    fn ident(&self) -> &Ident {
+    fn full_type(&self) -> TokenStream {
         match self {
-            Self::Counter(ident) => ident,
-            Self::Gauge(ident) => ident,
-            Self::Histogram(ident) => ident,
+            Self::Counter(ident, ty) => quote! { #ident<#ty> },
+            Self::Gauge(ident, ty) => quote! { #ident<#ty> },
+            Self::Histogram(ident) => quote! { #ident },
         }
     }
 }
@@ -123,7 +165,7 @@ impl MetricBuilder {
 
         let last_segment = type_path.path.segments.last().unwrap();
 
-        let ty = MetricType::from_ident(&last_segment.ident)?;
+        let ty = MetricType::from_segment(last_segment)?;
 
         Ok(Self {
             identifier: metric_field
@@ -147,7 +189,7 @@ impl MetricBuilder {
     fn build_initializer(&self) -> TokenStream {
         let ident = &self.identifier;
         let help = &self.help;
-        let ty = self.ty.ident();
+        let ty = self.ty.full_type();
         let name = &self.full_name;
         let labels = self.labels();
         let buckets = &self.buckets;
@@ -201,7 +243,7 @@ impl MetricBuilder {
     fn build_accessor(&self, vis: &syn::Visibility) -> (TokenStream, TokenStream) {
         let ident = &self.identifier;
         let labels = self.labels();
-        let ty = self.ty.ident();
+        let ty = self.ty.full_type();
 
         let accessor_name = format_ident!("{}Accessor", snake_to_pascal(&ident.to_string()));
 
@@ -261,13 +303,13 @@ impl MetricBuilder {
 
         // TODO(mempirate): Implement the different number types by extracting the generic.
         let terminal_methods = match ty {
-            MetricType::Counter(_) => quote! {
+            MetricType::Counter(_, counter_ty) => quote! {
                 #vis fn inc(&self) {
                     #labels_array
                     self.inner.inc(labels);
                 }
 
-                #vis fn inc_by(&self, value: u64) {
+                #vis fn inc_by(&self, value: #counter_ty) {
                     #labels_array
                     self.inner.inc_by(labels, value);
                 }
@@ -277,7 +319,7 @@ impl MetricBuilder {
                     self.inner.reset(labels);
                 }
             },
-            MetricType::Gauge(_) => quote! {
+            MetricType::Gauge(_, gauge_ty) => quote! {
                 #vis fn inc(&self) {
                     #labels_array
                     self.inner.inc(labels);
@@ -288,17 +330,17 @@ impl MetricBuilder {
                     self.inner.dec(labels);
                 }
 
-                #vis fn add(&self, value: i64) {
+                #vis fn add(&self, value: #gauge_ty) {
                     #labels_array
                     self.inner.add(labels, value);
                 }
 
-                #vis fn sub(&self, value: i64) {
+                #vis fn sub(&self, value: #gauge_ty) {
                     #labels_array
                     self.inner.sub(labels, value);
                 }
 
-                #vis fn set(&self, value: i64) {
+                #vis fn set(&self, value: #gauge_ty) {
                     #labels_array
                     self.inner.set(labels, value);
                 }

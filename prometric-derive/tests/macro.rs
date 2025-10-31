@@ -103,32 +103,23 @@ fn test_autocasts() {
     app_metrics.http_requests("GET", "/").inc_by(3u32);
     app_metrics.http_requests("GET", "/").inc_by(3i32);
     app_metrics.http_requests("GET", "/").inc_by(3u64);
-    app_metrics.http_requests("GET", "/").inc_by(3i64);
     app_metrics.http_requests("GET", "/").inc_by(3usize);
-    app_metrics.http_requests("GET", "/").inc_by(3f32);
-    app_metrics.http_requests("GET", "/").inc_by(3f64);
 
     // gauge
     app_metrics.current_users("service-1").set(3); // auto: i32
     app_metrics.current_users("service-1").set(3u32);
     app_metrics.current_users("service-1").set(3i32);
-    app_metrics.current_users("service-1").set(3u64);
-    app_metrics.current_users("service-1").set(3i64);
     app_metrics.current_users("service-1").set(3usize);
-    app_metrics.current_users("service-1").set(3f32);
-    app_metrics.current_users("service-1").set(3f64);
 
     // hist
     app_metrics.http_requests_duration("GET", "/").observe(3); // auto: i32 
     app_metrics.http_requests_duration("GET", "/").observe(3u32);
     app_metrics.http_requests_duration("GET", "/").observe(3i32);
-    app_metrics.http_requests_duration("GET", "/").observe(3u64);
-    app_metrics.http_requests_duration("GET", "/").observe(3i64);
+    app_metrics.http_requests_duration("GET", "/").observe(3f32);
+    app_metrics.http_requests_duration("GET", "/").observe(3f64);
     app_metrics
         .http_requests_duration("GET", "/")
         .observe(3usize);
-    app_metrics.http_requests_duration("GET", "/").observe(3f32);
-    app_metrics.http_requests_duration("GET", "/").observe(3f64);
 }
 
 #[test]

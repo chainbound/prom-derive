@@ -305,7 +305,10 @@ impl MetricBuilder {
                     self.inner.inc(labels);
                 }
 
-                #vis fn inc_by(&self, value: #counter_ty) {
+                #vis fn inc_by<V>(&self, value: V)
+                where
+                    V: prometric::IntoAtomic<#counter_ty>,
+                {
                     #labels_array
                     self.inner.inc_by(labels, value.into_atomic());
                 }
@@ -326,17 +329,26 @@ impl MetricBuilder {
                     self.inner.dec(labels);
                 }
 
-                #vis fn add(&self, value: #gauge_ty) {
+                #vis fn add<V>(&self, value: V)
+                where
+                    V: prometric::IntoAtomic<#gauge_ty>,
+                {
                     #labels_array
                     self.inner.add(labels, value.into_atomic());
                 }
 
-                #vis fn sub(&self, value: #gauge_ty) {
+                #vis fn sub<V>(&self, value: V)
+                where
+                    V: prometric::IntoAtomic<#gauge_ty>,
+                {
                     #labels_array
                     self.inner.sub(labels, value.into_atomic());
                 }
 
-                #vis fn set(&self, value: #gauge_ty) {
+                #vis fn set<V>(&self, value: V)
+                where
+                    V: prometric::IntoAtomic<#gauge_ty>,
+                {
                     #labels_array
                     self.inner.set(labels, value.into_atomic());
                 }

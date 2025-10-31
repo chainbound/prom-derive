@@ -7,13 +7,26 @@
 
 use std::collections::HashMap;
 
+/// Sealed trait to prevent outside code from implementing the metric types.
+mod private {
+    pub trait Sealed {}
+
+    impl Sealed for u64 {}
+    impl Sealed for i64 {}
+    impl Sealed for f64 {}
+    impl Sealed for i32 {}
+    impl Sealed for u32 {}
+    impl Sealed for usize {}
+    impl Sealed for f32 {}
+}
+
 /// Internal conversion trait to allow ergonomic value passing (e.g., `u32`, `usize`).
 /// This enables library users to call methods like `.set(queue.len())` without manual casts.
-pub trait IntoAtomic<T> {
+pub trait IntoAtomic<T>: private::Sealed {
     fn into_atomic(self) -> T;
 }
 
-impl<T> IntoAtomic<T> for T {
+impl<T: private::Sealed> IntoAtomic<T> for T {
     #[inline]
     fn into_atomic(self) -> T {
         self
@@ -32,38 +45,21 @@ macro_rules! impl_into_atomic {
     };
 }
 
-// to u64
+// safe casts to u64
 impl_into_atomic!(i32 => u64);
 impl_into_atomic!(u32 => u64);
-impl_into_atomic!(i64 => u64);
 impl_into_atomic!(usize => u64);
-impl_into_atomic!(f32 => u64);
-impl_into_atomic!(f64 => u64);
 
-// to i64
+// safe casts to i64
 impl_into_atomic!(i32 => i64);
 impl_into_atomic!(u32 => i64);
-impl_into_atomic!(u64 => i64);
 impl_into_atomic!(usize => i64);
-impl_into_atomic!(f32 => i64);
-impl_into_atomic!(f64 => i64);
 
-// to f64
+// safe casts to f64
 impl_into_atomic!(i32 => f64);
 impl_into_atomic!(u32 => f64);
-impl_into_atomic!(u64 => f64);
-impl_into_atomic!(i64 => f64);
-impl_into_atomic!(f32 => f64);
 impl_into_atomic!(usize => f64);
-
-/// Sealed trait to prevent outside code from implementing the metric types.
-mod private {
-    pub trait Sealed {}
-
-    impl Sealed for u64 {}
-    impl Sealed for i64 {}
-    impl Sealed for f64 {}
-}
+impl_into_atomic!(f32 => f64);
 
 /// The default number type for counters.
 pub type CounterDefault = u64;

@@ -116,6 +116,7 @@ impl<N: CounterNumber> Clone for Counter<N> {
 }
 
 impl<N: CounterNumber> Counter<N> {
+    /// Create a new counter metric with the given registry, name, help, labels, and const labels.
     pub fn new(
         registry: &prometheus::Registry,
         name: &str,
@@ -174,6 +175,7 @@ impl<N: GaugeNumber> Clone for Gauge<N> {
 }
 
 impl<N: GaugeNumber> Gauge<N> {
+    /// Create a new gauge metric with the given registry, name, help, labels, and const labels.
     pub fn new(
         registry: &prometheus::Registry,
         name: &str,

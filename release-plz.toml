@@ -17,6 +17,12 @@ dependencies_update = true
 pr_labels = ["release"]
 pr_name = "feat: release {{ version }}"
 
+# Single unified release tag and name (instead of per-package)
+# Default would be: prometric-v0.1.2, prometric-derive-v0.1.2
+# This creates a single tag: v0.1.2
+git_tag_name = "v{{ version }}"
+git_release_name = "v{{ version }}"
+
 # Point both packages to the same changelog at the workspace root
 [[package]]
 name = "prometric"

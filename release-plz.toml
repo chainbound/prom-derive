@@ -44,7 +44,19 @@ commit_parsers = [
     { message = "^chore", skip = true },
 ]
 
-# Automatically link PR and issue numbers in changelog
-link_parsers = [
-    { pattern = "#(\\d+)", href = "https://github.com/chainbound/prometric/issues/$1" },
+# Strip conventional commit prefixes from messages in changelog
+# This turns "feat: add feature" into "add feature"
+commit_preprocessors = [
+    { pattern = '^(feat|fix|docs|perf|refactor|test|chore|style|ci|build)(\(.+\))?: ', replace = "" },
 ]
+
+# Custom body template to format commits as:
+# - support histogram bucket configuration attribute by @mempirate in #11
+body = """
+{% for group, commits in commits | group_by(attribute="group") -%}
+### {{ group }}
+{% for commit in commits -%}
+- {{ commit.message }}{% if commit.remote.username %} by @{{ commit.remote.username }}{% endif %}{% if commit.remote.pr_number %} in https://github.com/chainbound/prometric/pull/{{ commit.remote.pr_number }}{% endif %}
+{% endfor -%}
+{% endfor -%}
+"""

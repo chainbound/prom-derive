@@ -1,0 +1,30 @@
+# Configuration for release-plz
+# See https://release-plz.dev/docs/config
+# Since this is a workspace, both crates will be released together with the same version.
+
+[workspace]
+# IMPORTANT: Set to false to avoid race conditions with squash merges.
+# Packages will only be released when you merge the release PR.
+release_always = false
+
+# This will detect breaking API changes and bump versions accordingly.
+semver_check = true
+
+# Automatically update dependencies between workspace members
+dependencies_update = true
+
+# Customize the release PR
+pr_labels = ["release"]
+pr_name = "feat: release {{ version }}"
+
+[changelog]
+# Configure changelog generation using conventional commits
+commit_parsers = [
+    { message = "^feat", group = "<!-- 0 -->⛰️  Features" },
+    { message = "^fix", group = "<!-- 1 -->🐛 Bug Fixes" },
+    { message = "^docs", group = "<!-- 3 -->📚 Documentation" },
+    { message = "^perf", group = "<!-- 4 -->⚡ Performance" },
+    { message = "^refactor", group = "<!-- 2 -->🚜 Refactor" },
+    { message = "^feat\\(release\\)", skip = true },
+    { message = "^chore", group = "<!-- 5 -->🧹 Miscellaneous" },
+]

@@ -6,7 +6,7 @@ use syn::{
     Result, Type,
 };
 
-use crate::utils::snake_to_pascal;
+use crate::utils::{snake_to_pascal, to_screaming_snake};
 
 /// The name of the metric attribute.
 const METRIC_ATTR_NAME: &str = "metric";
@@ -20,6 +20,9 @@ const DEFAULT_SEPARATOR: &str = "_";
 pub(super) struct MetricsAttr {
     /// The scope to use for the metrics. Used as a prefix for metric names.
     scope: Option<LitStr>,
+    /// If true, generates a static LazyLock with SCREAMING_SNAKE_CASE name.
+    #[darling(default)]
+    with_static: bool,
 }
 
 enum MetricType {
@@ -452,6 +455,17 @@ pub fn expand(metrics_attr: MetricsAttr, input: &mut ItemStruct) -> Result<Token
         #input
     };
 
+    let static_decl = if metrics_attr.with_static {
+        let static_name = format_ident!("{}", to_screaming_snake(&ident.to_string()));
+        Some(quote! {
+            /// A static instance of the metrics, initialized with default values.
+            /// This static is generated when `with_static` is enabled on the `#[metrics]` attribute.
+            #vis static #static_name: std::sync::LazyLock<#ident> = std::sync::LazyLock::new(|| #ident::default());
+        })
+    } else {
+        None
+    };
+
     output = quote! {
         #output
 
@@ -478,6 +492,14 @@ pub fn expand(metrics_attr: MetricsAttr, input: &mut ItemStruct) -> Result<Token
             #(#accessors)*
         }
     };
+
+    if let Some(static_decl) = static_decl {
+        output = quote! {
+            #output
+
+            #static_decl
+        };
+    }
 
     Ok(output)
 }

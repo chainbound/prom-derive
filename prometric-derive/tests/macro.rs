@@ -135,3 +135,41 @@ fn test_double_registration_success() {
         .with_label("host", "0.0.0.0")
         .build();
 }
+
+#[prometric_derive::metrics(scope = "test", with_static)]
+struct TestMetrics {
+    /// Test counter metric.
+    #[metric(labels = ["label1"])]
+    test_counter: prometric::Counter,
+
+    /// Test gauge metric.
+    #[metric]
+    test_gauge: prometric::Gauge,
+}
+
+#[test]
+fn test_with_static() {
+    // Verify that the static TEST_METRICS is generated and accessible
+    // The static name should be TEST_METRICS (SCREAMING_SNAKE_CASE)
+
+    // Use the static directly (statics are module-level, not associated items)
+    TEST_METRICS.test_counter("value1").inc();
+    TEST_METRICS.test_gauge().set(42);
+
+    // Verify it works by checking the registry
+    let registry = prometheus::default_registry();
+    let metric_families = registry.gather();
+
+    let encoder = prometheus::TextEncoder::new();
+    let mut buffer = vec![];
+    encoder.encode(&metric_families, &mut buffer).unwrap();
+    let output = String::from_utf8(buffer).unwrap();
+
+    // The static should register metrics with the default registry
+    assert!(output.contains("test_test_counter"));
+    assert!(output.contains("test_test_gauge"));
+
+    // Verify we can increment again
+    TEST_METRICS.test_counter("value1").inc();
+    TEST_METRICS.test_gauge().inc();
+}

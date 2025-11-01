@@ -17,14 +17,28 @@ dependencies_update = true
 pr_labels = ["release"]
 pr_name = "feat: release {{ version }}"
 
+# Point both packages to the same changelog at the workspace root
+[[package]]
+name = "prometric"
+changelog_path = "CHANGELOG.md"
+
+[[package]]
+name = "prometric-derive"
+changelog_path = "CHANGELOG.md"
+
 [changelog]
 # Configure changelog generation using conventional commits
 commit_parsers = [
-    { message = "^feat", group = "<!-- 0 -->⛰️  Features" },
-    { message = "^fix", group = "<!-- 1 -->🐛 Bug Fixes" },
-    { message = "^docs", group = "<!-- 3 -->📚 Documentation" },
-    { message = "^perf", group = "<!-- 4 -->⚡ Performance" },
-    { message = "^refactor", group = "<!-- 2 -->🚜 Refactor" },
+    { message = "^feat", group = "Features" },
+    { message = "^fix", group = "Bug Fixes" },
+    { message = "^docs", group = "Documentation" },
+    { message = "^perf", group = "Performance" },
+    { message = "^refactor", group = "Refactor" },
     { message = "^feat\\(release\\)", skip = true },
-    { message = "^chore", group = "<!-- 5 -->🧹 Miscellaneous" },
+    { message = "^chore", skip = true },
+]
+
+# Automatically link PR and issue numbers in changelog
+link_parsers = [
+    { pattern = "#(\\d+)", href = "https://github.com/chainbound/prometric/issues/$1" },
 ]

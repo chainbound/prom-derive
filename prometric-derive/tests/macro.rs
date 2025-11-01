@@ -80,7 +80,7 @@ fn test_macro() {
     encoder.encode(&metric_families, &mut buffer).unwrap();
 
     let output = String::from_utf8(buffer).unwrap();
-    println!("\n=== Prometheus Metrics Output ===\n{}", output);
+    println!("\n=== Prometheus Metrics Output ===\n{output}");
 
     assert!(output.contains("app_current_active_users"));
     assert!(output.contains("app_http_requests_duration"));
@@ -88,6 +88,38 @@ fn test_macro() {
     assert!(output.contains("app_errors"));
     assert!(output.contains("app_account_balance"));
     assert!(output.contains("The current number of active users."));
+}
+
+#[test]
+fn test_autocasts() {
+    let registry = prometheus::Registry::new();
+    let app_metrics = AppMetrics::builder()
+        .with_registry(&registry)
+        .with_label("host", "localhost")
+        .build();
+
+    // counter
+    app_metrics.http_requests("GET", "/").inc_by(3); // auto: i32
+    app_metrics.http_requests("GET", "/").inc_by(3u32);
+    app_metrics.http_requests("GET", "/").inc_by(3i32);
+    app_metrics.http_requests("GET", "/").inc_by(3u64);
+    app_metrics.http_requests("GET", "/").inc_by(3usize);
+
+    // gauge
+    app_metrics.current_users("service-1").set(3); // auto: i32
+    app_metrics.current_users("service-1").set(3u32);
+    app_metrics.current_users("service-1").set(3i32);
+    app_metrics.current_users("service-1").set(3usize);
+
+    // hist
+    app_metrics.http_requests_duration("GET", "/").observe(3); // auto: i32 
+    app_metrics.http_requests_duration("GET", "/").observe(3u32);
+    app_metrics.http_requests_duration("GET", "/").observe(3i32);
+    app_metrics.http_requests_duration("GET", "/").observe(3f32);
+    app_metrics.http_requests_duration("GET", "/").observe(3f64);
+    app_metrics
+        .http_requests_duration("GET", "/")
+        .observe(3usize);
 }
 
 #[test]

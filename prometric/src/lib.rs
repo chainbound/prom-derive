@@ -14,7 +14,52 @@ mod private {
     impl Sealed for u64 {}
     impl Sealed for i64 {}
     impl Sealed for f64 {}
+    impl Sealed for i32 {}
+    impl Sealed for u32 {}
+    impl Sealed for usize {}
+    impl Sealed for f32 {}
 }
+
+/// Internal conversion trait to allow ergonomic value passing (e.g., `u32`, `usize`).
+/// This enables library users to call methods like `.set(queue.len())` without manual casts.
+pub trait IntoAtomic<T>: private::Sealed {
+    fn into_atomic(self) -> T;
+}
+
+impl<T: private::Sealed> IntoAtomic<T> for T {
+    #[inline]
+    fn into_atomic(self) -> T {
+        self
+    }
+}
+
+/// Macro to implement `IntoAtomic<Out>` for a type `In`.
+macro_rules! impl_into_atomic {
+    ($in_ty:ty => $out_ty:ty) => {
+        impl $crate::IntoAtomic<$out_ty> for $in_ty {
+            #[inline]
+            fn into_atomic(self) -> $out_ty {
+                self as $out_ty
+            }
+        }
+    };
+}
+
+// auto casts to u64
+impl_into_atomic!(i32 => u64);
+impl_into_atomic!(u32 => u64);
+impl_into_atomic!(usize => u64);
+
+// auto casts to i64
+impl_into_atomic!(i32 => i64);
+impl_into_atomic!(u32 => i64);
+impl_into_atomic!(usize => i64);
+
+// auto casts to f64
+impl_into_atomic!(i32 => f64);
+impl_into_atomic!(u32 => f64);
+impl_into_atomic!(usize => f64);
+impl_into_atomic!(f32 => f64);
 
 /// The default number type for counters.
 pub type CounterDefault = u64;

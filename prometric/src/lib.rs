@@ -68,7 +68,9 @@ pub type CounterDefault = u64;
 pub type GaugeDefault = u64;
 
 /// A marker trait for numbers that can be used as counter values.
+/// Supported types: `u64`, `f64`
 pub trait CounterNumber: Sized + 'static + private::Sealed {
+    /// The atomic type associated with this number type.
     type Atomic: prometheus::core::Atomic;
 }
 
@@ -81,7 +83,9 @@ impl CounterNumber for f64 {
 }
 
 /// A marker trait for numbers that can be used as gauge values.
+/// Supported types: `i64`, `f64`, `u64`
 pub trait GaugeNumber: Sized + 'static + private::Sealed {
+    /// The atomic type associated with this number type.
     type Atomic: prometheus::core::Atomic;
 }
 

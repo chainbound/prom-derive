@@ -460,7 +460,7 @@ pub fn expand(metrics_attr: MetricsAttr, input: &mut ItemStruct) -> Result<Token
         Some(quote! {
             /// A static instance of the metrics, initialized with default values.
             /// This static is generated when `static` is enabled on the `#[metrics]` attribute.
-            #vis static #static_name: std::sync::LazyLock<#ident> = std::sync::LazyLock::new(|| #ident::default());
+            #vis static #static_name: std::sync::LazyLock<#ident> = std::sync::LazyLock::new(|| #ident::builder().build());
         })
     } else {
         None
@@ -473,15 +473,9 @@ pub fn expand(metrics_attr: MetricsAttr, input: &mut ItemStruct) -> Result<Token
         quote! { #vis }
     };
 
-    // When static is true, don't implement Default publicly; use a private method instead
+    // When static is true, don't implement Default
     let default_impl = if metrics_attr._static {
-        quote! {
-            impl #ident {
-                fn default() -> Self {
-                    Self::builder().build()
-                }
-            }
-        }
+        quote! {}
     } else {
         quote! {
             impl Default for #ident {

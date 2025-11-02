@@ -1,3 +1,4 @@
+/// Convert a snake_case string to PascalCase.
 pub(crate) fn snake_to_pascal(s: &str) -> String {
     let mut result = String::with_capacity(s.len());
     let mut capitalize_next = true;
@@ -19,6 +20,23 @@ pub(crate) fn snake_to_pascal(s: &str) -> String {
             // any other char (dash, space, punctuation) — treat as word-separator
             capitalize_next = true;
         }
+    }
+
+    result
+}
+
+/// Convert a string to SCREAMING_SNAKE_CASE.
+pub(crate) fn to_screaming_snake(s: &str) -> String {
+    let mut result =
+        String::with_capacity(s.len() + s.chars().filter(|c| c.is_uppercase()).count());
+    let mut prev_was_lower = false;
+
+    for ch in s.chars() {
+        if ch.is_uppercase() && prev_was_lower && !result.is_empty() {
+            result.push('_');
+        }
+        result.push(ch.to_ascii_uppercase());
+        prev_was_lower = ch.is_lowercase();
     }
 
     result

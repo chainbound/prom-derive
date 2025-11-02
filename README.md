@@ -1,4 +1,5 @@
 # `prometric`
+
 [![Lints](https://github.com/chainbound/prometric/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/chainbound/prometric/actions/workflows/lint.yml)
 [![Tests](https://github.com/chainbound/prometric/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/chainbound/prometric/actions/workflows/test.yml)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/chainbound/prometric)
@@ -8,12 +9,15 @@ A library for ergonomically generating and using embedded Prometheus metrics in 
 Inspired by [metrics-derive](https://github.com/ithacaxyz/metrics-derive), but works directly with [prometheus](https://docs.rs/prometheus/latest/prometheus)
 instead of [metrics](https://docs.rs/metrics/latest/metrics), and supports dynamic labels.
 
-| Crate | crates.io | docs.rs |
-|-------|-----------|---------|
-| `prometric` | [![crates.io](https://img.shields.io/crates/v/prometric.svg)](https://crates.io/crates/prometric) | [![docs.rs](https://docs.rs/prometric/badge.svg)](https://docs.rs/prometric) |
+| Crate              | crates.io                                                                                                       | docs.rs                                                                                    |
+| ------------------ | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `prometric`        | [![crates.io](https://img.shields.io/crates/v/prometric.svg)](https://crates.io/crates/prometric)               | [![docs.rs](https://docs.rs/prometric/badge.svg)](https://docs.rs/prometric)               |
 | `prometric-derive` | [![crates.io](https://img.shields.io/crates/v/prometric-derive.svg)](https://crates.io/crates/prometric-derive) | [![docs.rs](https://docs.rs/prometric-derive/badge.svg)](https://docs.rs/prometric-derive) |
 
 ## Usage
+
+### Basic Usage
+
 ```rust
 use prometric_derive::metrics;
 use prometric::{Counter, Gauge, Histogram};
@@ -56,7 +60,36 @@ metrics.account_balance("1234567890").set(-12.2);
 metrics.errors().inc();
 ```
 
+### Static Metrics
+
+You can also generate a static `LazyLock` instance by using the `static` attribute. When enabled, the builder methods and `Default` implementation are made private, ensuring the only way to access the metrics is through the static instance:
+
+```rust
+use prometric_derive::metrics;
+use prometric::{Counter, Gauge};
+
+#[metrics(scope = "app", static)]
+struct AppMetrics {
+    /// The total number of requests.
+    #[metric(labels = ["method"])]
+    requests: Counter,
+
+    /// The current number of active connections.
+    #[metric]
+    active_connections: Gauge,
+}
+
+// Use the static directly (the name is APP_METRICS in SCREAMING_SNAKE_CASE)
+APP_METRICS.requests("GET").inc();
+APP_METRICS.active_connections().set(10);
+
+// The following would not compile:
+// let metrics = AppMetrics::builder();  // Error: builder() is private
+// let metrics = AppMetrics::default();   // Error: Default is not implemented
+```
+
 #### Sample Output
+
 ```text
 # HELP app_account_balance The balance of the account, in dollars. Uses a floating point number.
 # TYPE app_account_balance gauge

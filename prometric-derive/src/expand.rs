@@ -62,10 +62,7 @@ impl MetricType {
                 }
             }
             PathArguments::Parenthesized(_) => {
-                return Err(syn::Error::new_spanned(
-                    segment,
-                    "Expected a generic type argument",
-                ));
+                return Err(syn::Error::new_spanned(segment, "Expected a generic type argument"));
             }
         };
 
@@ -222,11 +219,8 @@ impl MetricBuilder {
 
         if let MetricType::Histogram(_) = &self.ty {
             if let Some(buckets) = &self.buckets {
-                let bucket_str = buckets
-                    .iter()
-                    .map(|lit| lit.base10_digits())
-                    .collect::<Vec<_>>()
-                    .join(", ");
+                let bucket_str =
+                    buckets.iter().map(|lit| lit.base10_digits()).collect::<Vec<_>>().join(", ");
                 doc_builder.push_str(&format!("\n* Buckets: [{bucket_str}]"));
             } else {
                 doc_builder.push_str("\n* Buckets: [prometheus::DEFAULT_BUCKETS]");
@@ -415,9 +409,7 @@ pub fn expand(metrics_attr: MetricsAttr, input: &mut ItemStruct) -> Result<Token
         accessor_impls.push(builder.build_accessor_impl(vis));
 
         // Remove the metric attribute from the field.
-        field
-            .attrs
-            .retain(|attr| !attr.path().is_ident(METRIC_ATTR_NAME));
+        field.attrs.retain(|attr| !attr.path().is_ident(METRIC_ATTR_NAME));
     }
 
     let builder_name = format_ident!("{ident}Builder");

@@ -8,8 +8,9 @@ use crate::expand::MetricsAttr;
 mod expand;
 mod utils;
 
-/// This attribute macro instruments all of the struct fields with Prometheus metrics according to the attributes on the fields.
-/// It also generates an ergonomic accessor API for each of the defined metrics.
+/// This attribute macro instruments all of the struct fields with Prometheus metrics according to
+/// the attributes on the fields. It also generates an ergonomic accessor API for each of the
+/// defined metrics.
 ///
 /// # Example
 /// ```rust
@@ -70,18 +71,18 @@ mod utils;
 //
 // # HELP app_http_requests_duration The duration of HTTP requests.
 // # TYPE app_http_requests_duration histogram
-// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="0.005"} 0
-// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="0.01"} 0
-// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="0.025"} 0
-// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="0.05"} 0
-// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="0.1"} 0
-// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="0.25"} 0
-// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="0.5"} 0
-// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="1"} 1
-// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="2.5"} 1
-// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="5"} 1
-// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="+Inf"} 1
-// app_http_requests_duration_sum{host="localhost",method="GET",path="/",port="8080"} 1
+// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="0.005"}
+// 0 app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="0.01"}
+// 0 app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="0.025"
+// } 0 app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="0.
+// 05"} 0 app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="
+// 0.1"} 0 app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="
+// 0.25"} 0 app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",
+// le="0.5"} 0 app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",
+// le="1"} 1 app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",
+// le="2.5"} 1 app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",
+// le="5"} 1 app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",
+// le="+Inf"} 1 app_http_requests_duration_sum{host="localhost",method="GET",path="/",port="8080"} 1
 // app_http_requests_duration_count{host="localhost",method="GET",path="/",port="8080"} 1
 //
 // # HELP app_http_requests_total The total number of HTTP requests.
@@ -92,7 +93,8 @@ mod utils;
 ///
 #[proc_macro_attribute]
 pub fn metrics(attr: TokenStream, item: TokenStream) -> TokenStream {
-    // NOTE: We use `proc_macro_attribute` here because we're actually rewriting the struct. Derive macros are additive.
+    // NOTE: We use `proc_macro_attribute` here because we're actually rewriting the struct. Derive
+    // macros are additive.
     let mut input = parse_macro_input!(item as ItemStruct);
 
     let attributes: MetricsAttr = match syn::parse(attr) {
@@ -102,7 +104,5 @@ pub fn metrics(attr: TokenStream, item: TokenStream) -> TokenStream {
         }
     };
 
-    expand::expand(attributes, &mut input)
-        .unwrap_or_else(|err| err.into_compile_error())
-        .into()
+    expand::expand(attributes, &mut input).unwrap_or_else(|err| err.into_compile_error()).into()
 }

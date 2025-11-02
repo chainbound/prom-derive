@@ -26,10 +26,7 @@ fn test_exporter_thread() {
 
     metrics.counter().inc();
 
-    let runtime = tokio::runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()
-        .unwrap();
+    let runtime = tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap();
 
     runtime.block_on(async {
         // Give the server a moment to start
@@ -44,12 +41,8 @@ fn test_exporter_thread() {
         assert_eq!(response.status(), 200);
 
         // Read the response body
-        let body_bytes = response
-            .into_body()
-            .collect()
-            .await
-            .expect("Failed to read response body")
-            .to_bytes();
+        let body_bytes =
+            response.into_body().collect().await.expect("Failed to read response body").to_bytes();
         let body = String::from_utf8(body_bytes.to_vec()).expect("Invalid UTF-8");
 
         // Verify the metric is present with the global prefix
@@ -85,12 +78,8 @@ async fn test_exporter_async() {
     assert_eq!(response.status(), 200);
 
     // Read the response body
-    let body_bytes = response
-        .into_body()
-        .collect()
-        .await
-        .expect("Failed to read response body")
-        .to_bytes();
+    let body_bytes =
+        response.into_body().collect().await.expect("Failed to read response body").to_bytes();
     let body = String::from_utf8(body_bytes.to_vec()).expect("Invalid UTF-8");
 
     // Verify the metric is present with the global prefix

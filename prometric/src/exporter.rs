@@ -7,10 +7,11 @@ use hyper::{
 use hyper_util::rt::TokioIo;
 use prometheus::{Encoder, TextEncoder};
 
+/// A builder for the Prometheus HTTP exporter.
 pub struct ExporterBuilder {
     registry: Option<prometheus::Registry>,
-    address: SocketAddr,
-    path: Option<String>,
+    address: String,
+    path: String,
     global_prefix: Option<String>,
 }
 
@@ -18,38 +19,10 @@ impl Default for ExporterBuilder {
     fn default() -> Self {
         Self {
             registry: None,
-            address: "0.0.0.0:9090".parse().unwrap(),
-            path: None,
+            address: "0.0.0.0:9090".to_owned(),
+            path: "/".to_owned(),
             global_prefix: None,
         }
-    }
-}
-
-pub enum ExporterError {
-    BindError(std::io::Error),
-    InvalidPath(String),
-}
-
-impl std::error::Error for ExporterError {}
-
-impl std::fmt::Display for ExporterError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::BindError(e) => write!(f, "Failed to bind to address: {}", e),
-            Self::InvalidPath(path) => write!(f, "Invalid path: {}", path),
-        }
-    }
-}
-
-impl From<std::io::Error> for ExporterError {
-    fn from(e: std::io::Error) -> Self {
-        Self::BindError(e)
-    }
-}
-
-impl std::fmt::Debug for ExporterError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self)
     }
 }
 
@@ -62,17 +35,20 @@ impl ExporterBuilder {
     /// Set the socket address for the exporter.
     ///
     /// # Panics
-    /// Panics if the address is malformed.
+    /// Panics if the socket address is malformed, i.e. if [`str::parse`] into a [`SocketAddr`]
+    /// returns an error.
     pub fn with_address(mut self, address: impl Into<String>) -> Self {
         let address = address.into();
-        self.address = address.parse().unwrap();
+        self.address = address;
         self
     }
 
     /// Set the path for the exporter.
+    ///
+    /// If no path is provided, the default path is `/`.
     pub fn with_path(mut self, path: impl Into<String>) -> Self {
         let path = path.into();
-        self.path = Some(path);
+        self.path = path;
         self
     }
 
@@ -90,52 +66,49 @@ impl ExporterBuilder {
     }
 
     fn path(&self) -> Result<String, ExporterError> {
-        if let Some(path) = self.path.clone() {
-            if path.is_empty() {
-                return Err(ExporterError::InvalidPath(path));
-            }
-
-            if !path.starts_with('/') {
-                return Err(ExporterError::InvalidPath(path));
-            }
-
-            if path.ends_with('/') {
-                return Err(ExporterError::InvalidPath(path));
-            }
-
-            Ok(path)
-        } else {
-            Ok("/".to_owned())
+        if self.path.is_empty() {
+            return Err(ExporterError::InvalidPath(self.path.clone()));
         }
+
+        if !self.path.starts_with('/') {
+            return Err(ExporterError::InvalidPath(self.path.clone()));
+        }
+
+        if self.path.ends_with('/') {
+            return Err(ExporterError::InvalidPath(self.path.clone()));
+        }
+
+        Ok(self.path.clone())
     }
 
-    /// Install the exporter and start serving metrics.
+    fn address(&self) -> Result<SocketAddr, ExporterError> {
+        self.address.parse().map_err(|e| ExporterError::InvalidAddress(self.address.clone(), e))
+    }
+
+    /// Install the HTTP exporter with the given configuration and start serving metrics.
+    /// Uses [hyper] for the HTTP server and [tokio] for the runtime.
     ///
     /// # Behavior
     /// - If a Tokio runtime is available, use it to spawn the listener.
-    /// - Otherwise, spawn a new single-threaded Tokio runtime on a thread, and spawn the listener there.
+    /// - Otherwise, spawn a new single-threaded Tokio runtime on a thread, and spawn the listener
+    ///   there.
     pub fn install(self) -> Result<(), ExporterError> {
         let path = self.path()?;
-        let address = self.address;
-        let registry = self
-            .registry
-            .unwrap_or_else(|| prometheus::default_registry().clone());
+        let address = self.address()?;
+        let registry = self.registry.unwrap_or_else(|| prometheus::default_registry().clone());
 
+        // Build the serve function
         let serve = serve(address, registry, path, self.global_prefix);
 
-        // If the runtime is available, use it to spawn the listener. Otherwise,
+        // If a Tokio runtime is available, use it to spawn the listener. Otherwise,
         // create a new single-threaded runtime and spawn the listener there.
         if let Ok(runtime) = tokio::runtime::Handle::try_current() {
             runtime.spawn(serve);
         } else {
-            let runtime = tokio::runtime::Builder::new_current_thread()
-                .enable_all()
-                .build()?;
+            let runtime = tokio::runtime::Builder::new_current_thread().enable_all().build()?;
 
             thread::spawn(move || {
-                runtime
-                    .block_on(serve)
-                    .unwrap_or_else(|e| panic!("server error: {:?}", e));
+                runtime.block_on(serve).unwrap_or_else(|e| panic!("server error: {:?}", e));
             });
         }
 
@@ -161,8 +134,9 @@ async fn serve(
         let service = service_fn(move |req| {
             serve_req(req, registry.clone(), path.clone(), global_prefix.clone())
         });
+
         if let Err(err) = http1::Builder::new().serve_connection(io, service).await {
-            eprintln!("server error: {:?}", err);
+            return Err(ExporterError::ServeError(err));
         };
     }
 }
@@ -177,9 +151,7 @@ async fn serve_req(
     let mut metrics = registry.gather();
 
     if req.uri().path() != path {
-        return Ok(Response::builder()
-            .status(404)
-            .body("Not Found".to_string())?);
+        return Ok(Response::builder().status(404).body("Not Found".to_string())?);
     }
 
     // Set the global prefix for the metrics
@@ -194,10 +166,41 @@ async fn serve_req(
 
     let body = encoder.encode_to_string(&metrics)?;
 
-    let response = Response::builder()
-        .status(200)
-        .header(CONTENT_TYPE, encoder.format_type())
-        .body(body)?;
+    let response =
+        Response::builder().status(200).header(CONTENT_TYPE, encoder.format_type()).body(body)?;
 
     Ok(response)
+}
+
+/// An error that can occur when building or installing the Prometheus HTTP exporter.
+pub enum ExporterError {
+    BindError(std::io::Error),
+    ServeError(hyper::Error),
+    InvalidPath(String),
+    InvalidAddress(String, std::net::AddrParseError),
+}
+
+impl std::error::Error for ExporterError {}
+
+impl std::fmt::Display for ExporterError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::BindError(e) => write!(f, "Failed to bind to address: {:?}", e),
+            Self::ServeError(e) => write!(f, "HTTP server failed: {:?}", e),
+            Self::InvalidPath(path) => write!(f, "Invalid path: {}", path),
+            Self::InvalidAddress(address, e) => write!(f, "Invalid address: {}: {:?}", address, e),
+        }
+    }
+}
+
+impl From<std::io::Error> for ExporterError {
+    fn from(e: std::io::Error) -> Self {
+        Self::BindError(e)
+    }
+}
+
+impl std::fmt::Debug for ExporterError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self)
+    }
 }

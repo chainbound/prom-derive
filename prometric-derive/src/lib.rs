@@ -101,6 +101,8 @@ mod utils;
 /// The builder methods and `Default` implementation are made private, ensuring the only way to access
 /// the metrics is through the static instance.
 ///
+/// If `static` is enabled, `prometheus::default_registry()` is used.
+///
 /// ```rust
 /// use prometric_derive::metrics;
 /// use prometric::{Counter, Gauge};

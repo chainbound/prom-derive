@@ -185,10 +185,10 @@ async fn serve_req(
     // Set the global prefix for the metrics
     if let Some(prefix) = global_prefix {
         metrics.iter_mut().for_each(|metric| {
-            metric.name.as_mut().map(|name| {
+            if let Some(name) = metric.name.as_mut() {
                 name.insert(0, '_');
                 name.insert_str(0, &prefix);
-            });
+            };
         });
     }
 

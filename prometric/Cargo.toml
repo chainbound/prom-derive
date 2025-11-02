@@ -12,3 +12,12 @@ categories = { workspace = true }
 
 [dependencies]
 prometheus = { workspace = true }
+
+# Exporter
+hyper = { version = "1.7.0", optional = true, features = ["http1", "server"] }
+hyper-util = { version = "0.1.17", optional = true, features = ["tokio"] }
+tokio = { version = "1.40.0", optional = true, features = ["net", "rt"] }
+
+[features]
+default = ["exporter"]
+exporter = ["dep:hyper", "dep:hyper-util", "dep:tokio"]

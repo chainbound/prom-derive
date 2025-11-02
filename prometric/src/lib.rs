@@ -7,6 +7,9 @@
 
 use std::collections::HashMap;
 
+#[cfg(feature = "exporter")]
+pub mod exporter;
+
 /// Sealed trait to prevent outside code from implementing the metric types.
 mod private {
     pub trait Sealed {}

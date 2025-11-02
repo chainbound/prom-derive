@@ -136,7 +136,7 @@ fn test_double_registration_success() {
         .build();
 }
 
-#[prometric_derive::metrics(scope = "test", with_static)]
+#[prometric_derive::metrics(scope = "test", static)]
 struct TestMetrics {
     /// Test counter metric.
     #[metric(labels = ["label1"])]
@@ -148,7 +148,7 @@ struct TestMetrics {
 }
 
 #[test]
-fn test_with_static() {
+fn test_static() {
     // Verify that the static TEST_METRICS is generated and accessible
     // The static name should be TEST_METRICS (SCREAMING_SNAKE_CASE)
 

@@ -124,3 +124,21 @@ app_http_requests_duration_count{host="localhost",method="GET",path="/",port="80
 app_http_requests_total{host="localhost",method="GET",path="/",port="8080"} 2
 app_http_requests_total{host="localhost",method="POST",path="/",port="8080"} 2
 ```
+
+### Exporting Metrics
+
+An HTTP exporter is provided by [`prometric::exporter::ExporterBuilder`]. Usage:
+
+```rust
+use prometric::exporter::ExporterBuilder;
+
+ExporterBuilder::new()
+    // Specify the address to listen on
+    .with_address("127.0.0.1:9090")
+    // Set the global namespace for the metrics (usually the name of the application)
+    .with_namespace("exporter")
+    // Install the exporter. This will start an HTTP server and serve metrics on the specified
+    // address.
+    .install()
+    .expect("Failed to install exporter");
+```

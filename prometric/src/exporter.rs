@@ -75,11 +75,14 @@ impl ExporterBuilder {
             return Err(ExporterError::InvalidPath(self.path.clone()));
         }
 
-        if self.path.ends_with('/') {
-            return Err(ExporterError::InvalidPath(self.path.clone()));
-        }
+        // Remove trailing slash from path
+        let path = if self.path.eq("/") {
+            "/".to_owned()
+        } else {
+            self.path.trim_end_matches('/').to_owned()
+        };
 
-        Ok(self.path.clone())
+        Ok(path)
     }
 
     fn address(&self) -> Result<SocketAddr, ExporterError> {

@@ -126,6 +126,26 @@ mod utils;
 /// // let metrics = AppMetrics::builder();  // Error: builder() is private
 /// // let metrics = AppMetrics::default();   // Error: Default is not implemented
 /// ```
+///
+/// # Exporting Metrics
+/// An HTTP exporter is provided by [`prometric::exporter::ExporterBuilder`]. Usage:
+///
+/// ```rust
+/// use prometric::exporter::ExporterBuilder;
+///
+/// // Metric definitions...
+///
+/// // Export the metrics on an HTTP endpoint in the background:
+/// ExporterBuilder::new()
+///     // Specify the address to listen on
+///     .with_address("127.0.0.1:9090")
+///     // Set the global namespace for the metrics (usually the name of the application)
+///     .with_namespace("exporter")
+///     // Install the exporter. This will start an HTTP server and serve metrics on the specified
+///     // address.
+///     .install()
+///     .expect("Failed to install exporter");
+/// ```
 #[proc_macro_attribute]
 pub fn metrics(attr: TokenStream, item: TokenStream) -> TokenStream {
     // NOTE: We use `proc_macro_attribute` here because we're actually rewriting the struct. Derive

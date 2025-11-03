@@ -57,7 +57,7 @@ commit_parsers = [
 ]
 
 body = """
-  {% for group, commits in commits | group_by(attribute="group") -%}
+  {% for group, commits in commits | filter(attribute="merge_commit") | group_by(attribute="group") -%}
   ### {{ group }}
   {% for commit in commits -%}
   {% if commit.remote.pr_number -%}

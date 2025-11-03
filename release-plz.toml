@@ -41,28 +41,17 @@ git_tag_enable = true
 [changelog]
 # Configure changelog generation using conventional commits
 commit_parsers = [
-    { message = "^feat", group = "Features" },
-    { message = "^fix", group = "Bug Fixes" },
-    { message = "^docs", group = "Documentation" },
-    { message = "^perf", group = "Performance" },
-    { message = "^refactor", group = "Refactor" },
+    # Only include commits with PR references (merge commits)
+    # NOTE: This will only work if merge commits adopt the PR name (configured in repo settings).
+    { message = "^feat.*\\(#\\d+\\)", group = "Features" },
+    { message = "^fix.*\\(#\\d+\\)", group = "Bug Fixes" },
+    { message = "^docs.*\\(#\\d+\\)", group = "Documentation" },
+    { message = "^perf.*\\(#\\d+\\)", group = "Performance" },
+    { message = "^refactor.*\\(#\\d+\\)", group = "Refactor" },
+
+    # Skip release commits
     { message = "^feat\\(release\\)", skip = true },
-    { message = "^chore", skip = true },
+
+    # Skip everything else (individual commits without PR numbers)
+    { message = ".*", skip = true },
 ]
-
-# Strip conventional commit prefixes from messages in changelog
-# This turns "feat: add feature" into "add feature"
-# commit_preprocessors = [
-#     { pattern = '^(feat|fix|docs|perf|refactor|test|chore|style|ci|build)(\(.+\))?: ', replace = "" },
-# ]
-
-# # Custom body template to format commits as:
-# # - support histogram bucket configuration attribute by @mempirate in #11
-# body = """
-# {% for group, commits in commits | group_by(attribute="group") -%}
-# ### {{ group }}
-# {% for commit in commits -%}
-# - {{ commit.message }}{% if commit.remote.username %} by @{{ commit.remote.username }}{% endif %}{% if commit.remote.pr_number %} in https://github.com/chainbound/prometric/pull/{{ commit.remote.pr_number }}{% endif %}
-# {% endfor -%}
-# {% endfor -%}
-# """

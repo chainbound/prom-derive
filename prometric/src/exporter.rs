@@ -52,8 +52,9 @@ impl ExporterBuilder {
         self
     }
 
-    /// Set the global prefix for the exporter. This will be prepended to all metric names.
-    pub fn with_global_prefix(mut self, global_prefix: impl Into<String>) -> Self {
+    /// Set the global namespace for the metrics in the associated registry. This will be prepended
+    /// to all metric names.
+    pub fn with_namespace(mut self, global_prefix: impl Into<String>) -> Self {
         let global_prefix = global_prefix.into();
         self.global_prefix = Some(global_prefix);
         self

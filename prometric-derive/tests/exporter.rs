@@ -18,11 +18,7 @@ fn test_exporter_thread() {
 
     metrics.counter().inc();
 
-    ExporterBuilder::new()
-        .with_address("127.0.0.1:9090")
-        .with_global_prefix("app")
-        .install()
-        .unwrap();
+    ExporterBuilder::new().with_address("127.0.0.1:9090").with_namespace("app").install().unwrap();
 
     metrics.counter().inc();
 
@@ -61,7 +57,7 @@ async fn test_exporter_async() {
     ExporterBuilder::new()
         .with_address("127.0.0.1:9091")
         .with_path("/metrics")
-        .with_global_prefix("app")
+        .with_namespace("app")
         .install()
         .unwrap();
 

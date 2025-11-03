@@ -7,6 +7,9 @@
 # Packages will only be released when you merge the release PR.
 release_always = false
 
+# Disable changelog updates for all workspace members
+changelog_update = false
+
 # This will detect breaking API changes and bump versions accordingly.
 semver_check = true
 
@@ -17,18 +20,23 @@ dependencies_update = true
 pr_labels = ["release"]
 pr_name = "feat: release {{ version }}"
 
-# Single unified release tag and name (instead of per-package)
-# Default would be: prometric-v0.1.2, prometric-derive-v0.1.2
-# This creates a single tag: v0.1.2
-git_tag_name = "v{{ version }}"
-git_release_name = "v{{ version }}"
+# Disable release and tag creation for all workspace members
+git_release_enable = false
+git_tag_enable = false
 
 # Only generate a changelog explicitly for prometric-derive,
 # but include the changes from prometric.
 [[package]]
 name = "prometric-derive"
+changelog_update = true
 changelog_path = "./CHANGELOG.md"
 changelog_include = ["prometric"]
+
+# Configure the tag and release name for this main package.
+git_tag_name = "v{{ version }}"
+git_release_name = "v{{ version }}"
+git_release_enable = true
+git_tag_enable = true
 
 [changelog]
 # Configure changelog generation using conventional commits

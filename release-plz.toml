@@ -43,11 +43,11 @@ git_tag_enable = true
 commit_parsers = [
     # Only include commits with PR references (merge commits)
     # NOTE: This will only work if merge commits adopt the PR name (configured in repo settings).
-    { message = "^feat.*#\\d+", group = "Features" },
-    { message = "^fix.*#\\d+", group = "Bug Fixes" },
-    { message = "^docs.*#\\d+", group = "Documentation" },
-    { message = "^perf.*#\\d+", group = "Performance" },
-    { message = "^refactor.*#\\d+", group = "Refactor" },
+    { message = "^feat", group = "Features" },
+    { message = "^fix", group = "Bug Fixes" },
+    { message = "^docs", group = "Documentation" },
+    { message = "^perf", group = "Performance" },
+    { message = "^refactor", group = "Refactor" },
 
     # Skip release commits
     { message = "^feat\\(release\\)", skip = true },

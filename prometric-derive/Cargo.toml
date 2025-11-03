@@ -22,6 +22,10 @@ darling = { workspace = true }
 
 [dev-dependencies]
 prometric = { path = "../prometric" }
+hyper-util = { version = "0.1.17", features = ["tokio", "client-legacy", "http1"] }
+hyper = { version = "1", features = ["client", "http1"] }
+http-body-util = "0.1"
+tokio = { version = "1", features = ["macros", "rt", "time"] }
 
 
 [package.metadata]

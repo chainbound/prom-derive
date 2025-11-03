@@ -1,11 +1,15 @@
-//! This library contains the core supported metric types. They are all wrappers around the Prometheus core types.
-//! These types are primarily used for *defining* metrics, and not for *using* them. The actual usage of metrics
-//! is done through the generated structs from the `prometric-derive` crate.
+//! This library contains the core supported metric types. They are all wrappers around the
+//! Prometheus core types. These types are primarily used for *defining* metrics, and not for
+//! *using* them. The actual usage of metrics is done through the generated structs from the
+//! `prometric-derive` crate.
 //! - [`Counter`]: A counter metric.
 //! - [`Gauge`]: A gauge metric.
 //! - [`Histogram`]: A histogram metric.
 
 use std::collections::HashMap;
+
+#[cfg(feature = "exporter")]
+pub mod exporter;
 
 /// Sealed trait to prevent outside code from implementing the metric types.
 mod private {
@@ -101,7 +105,8 @@ impl GaugeNumber for u64 {
     type Atomic = prometheus::core::AtomicU64;
 }
 
-/// A counter metric with a generic number type. Default is `u64`, which provides better performance for natural numbers.
+/// A counter metric with a generic number type. Default is `u64`, which provides better performance
+/// for natural numbers.
 #[derive(Debug)]
 pub struct Counter<N: CounterNumber = CounterDefault> {
     inner: prometheus::core::GenericCounterVec<N::Atomic>,
@@ -109,9 +114,7 @@ pub struct Counter<N: CounterNumber = CounterDefault> {
 
 impl<N: CounterNumber> Clone for Counter<N> {
     fn clone(&self) -> Self {
-        Self {
-            inner: self.inner.clone(),
-        }
+        Self { inner: self.inner.clone() }
     }
 }
 
@@ -160,7 +163,8 @@ impl<N: CounterNumber> Counter<N> {
     }
 }
 
-/// A gauge metric with a generic number type. Default is `i64`, which provides better performance for integers.
+/// A gauge metric with a generic number type. Default is `i64`, which provides better performance
+/// for integers.
 #[derive(Debug)]
 pub struct Gauge<N: GaugeNumber = GaugeDefault> {
     inner: prometheus::core::GenericGaugeVec<N::Atomic>,
@@ -168,9 +172,7 @@ pub struct Gauge<N: GaugeNumber = GaugeDefault> {
 
 impl<N: GaugeNumber> Clone for Gauge<N> {
     fn clone(&self) -> Self {
-        Self {
-            inner: self.inner.clone(),
-        }
+        Self { inner: self.inner.clone() }
     }
 }
 
@@ -235,9 +237,7 @@ pub struct Histogram {
 
 impl Clone for Histogram {
     fn clone(&self) -> Self {
-        Self {
-            inner: self.inner.clone(),
-        }
+        Self { inner: self.inner.clone() }
     }
 }
 
@@ -251,9 +251,8 @@ impl Histogram {
         buckets: Option<Vec<f64>>,
     ) -> Self {
         let buckets = buckets.unwrap_or(prometheus::DEFAULT_BUCKETS.to_vec());
-        let opts = prometheus::HistogramOpts::new(name, help)
-            .const_labels(const_labels)
-            .buckets(buckets);
+        let opts =
+            prometheus::HistogramOpts::new(name, help).const_labels(const_labels).buckets(buckets);
         let metric = prometheus::HistogramVec::new(opts, labels).unwrap();
 
         let boxed = Box::new(metric.clone());

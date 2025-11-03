@@ -12,9 +12,11 @@ use prometric::{Counter, Gauge, Histogram};
 /// is used to set the prefix and static labels for the metrics.
 ///
 /// - Doc comments on the fields are used to generate the documentation for the metric.
-/// - #[metric] attribute defines the metric name, and labels, and potentially other options for that metric type (like buckets)
+/// - #[metric] attribute defines the metric name, and labels, and potentially other options for
+///   that metric type (like buckets)
 /// - The type of the field is used to determine the metric type.
-/// - Deriving `Default` will generate a default instance of the struct with the metrics initialized and described. Counters and gauges
+/// - Deriving `Default` will generate a default instance of the struct with the metrics initialized
+///   and described. Counters and gauges
 /// will be initialized to 0.
 #[prometric_derive::metrics(scope = "app")]
 struct AppMetrics {
@@ -66,9 +68,7 @@ fn test_macro() {
     app_metrics.current_users("service-1").set(20);
 
     let duration = Duration::from_secs(1);
-    app_metrics
-        .http_requests_duration("GET", "/")
-        .observe(duration.as_secs_f64());
+    app_metrics.http_requests_duration("GET", "/").observe(duration.as_secs_f64());
 
     app_metrics.account_balance("1234567890").set(-12.2);
     app_metrics.errors().inc();
@@ -93,10 +93,8 @@ fn test_macro() {
 #[test]
 fn test_autocasts() {
     let registry = prometheus::Registry::new();
-    let app_metrics = AppMetrics::builder()
-        .with_registry(&registry)
-        .with_label("host", "localhost")
-        .build();
+    let app_metrics =
+        AppMetrics::builder().with_registry(&registry).with_label("host", "localhost").build();
 
     // counter
     app_metrics.http_requests("GET", "/").inc_by(3); // auto: i32
@@ -117,23 +115,15 @@ fn test_autocasts() {
     app_metrics.http_requests_duration("GET", "/").observe(3i32);
     app_metrics.http_requests_duration("GET", "/").observe(3f32);
     app_metrics.http_requests_duration("GET", "/").observe(3f64);
-    app_metrics
-        .http_requests_duration("GET", "/")
-        .observe(3usize);
+    app_metrics.http_requests_duration("GET", "/").observe(3usize);
 }
 
 #[test]
 fn test_double_registration_success() {
     let registry = prometheus::Registry::new();
-    AppMetrics::builder()
-        .with_registry(&registry)
-        .with_label("host", "localhost")
-        .build();
+    AppMetrics::builder().with_registry(&registry).with_label("host", "localhost").build();
 
-    AppMetrics::builder()
-        .with_registry(&registry)
-        .with_label("host", "0.0.0.0")
-        .build();
+    AppMetrics::builder().with_registry(&registry).with_label("host", "0.0.0.0").build();
 }
 
 #[prometric_derive::metrics(scope = "test", static)]

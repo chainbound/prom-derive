@@ -8,8 +8,9 @@ use crate::expand::MetricsAttr;
 mod expand;
 mod utils;
 
-/// This attribute macro instruments all of the struct fields with Prometheus metrics according to the attributes on the fields.
-/// It also generates an ergonomic accessor API for each of the defined metrics.
+/// This attribute macro instruments all of the struct fields with Prometheus metrics according to
+/// the attributes on the fields. It also generates an ergonomic accessor API for each of the
+/// defined metrics.
 ///
 /// # Attributes
 ///
@@ -61,58 +62,57 @@ mod utils;
 ///
 /// # Sample Output
 /// ```text
-// # HELP app_account_balance The balance of the account, in dollars. Uses a floating point number.
-// # TYPE app_account_balance gauge
-// app_account_balance{account_id="1234567890",host="localhost",port="8080"} -12.2
-//
-// # HELP app_current_active_users The current number of active users.
-// # TYPE app_current_active_users gauge
-// app_current_active_users{host="localhost",port="8080",service="service-1"} 20
-//
-// # HELP app_errors The total number of errors.
-// # TYPE app_errors counter
-// app_errors{host="localhost",port="8080"} 1
-//
-// # HELP app_http_requests_duration The duration of HTTP requests.
-// # TYPE app_http_requests_duration histogram
-// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="0.005"} 0
-// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="0.01"} 0
-// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="0.025"} 0
-// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="0.05"} 0
-// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="0.1"} 0
-// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="0.25"} 0
-// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="0.5"} 0
-// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="1"} 1
-// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="2.5"} 1
-// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="5"} 1
-// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="+Inf"} 1
-// app_http_requests_duration_sum{host="localhost",method="GET",path="/",port="8080"} 1
-// app_http_requests_duration_count{host="localhost",method="GET",path="/",port="8080"} 1
-//
-// # HELP app_http_requests_total The total number of HTTP requests.
-// # TYPE app_http_requests_total counter
-// app_http_requests_total{host="localhost",method="GET",path="/",port="8080"} 2
-// app_http_requests_total{host="localhost",method="POST",path="/",port="8080"} 2
-/// ```
+/// # HELP app_account_balance The balance of the account, in dollars. Uses a floating point number.
+/// # TYPE app_account_balance gauge
+/// app_account_balance{account_id="1234567890",host="localhost",port="8080"} -12.2
 ///
+/// # HELP app_current_active_users The current number of active users.
+/// # TYPE app_current_active_users gauge
+/// app_current_active_users{host="localhost",port="8080",service="service-1"} 20
+///
+/// # HELP app_errors The total number of errors.
+/// # TYPE app_errors counter
+/// app_errors{host="localhost",port="8080"} 1
+///
+/// # HELP app_http_requests_duration The duration of HTTP requests.
+/// # TYPE app_http_requests_duration histogram
+/// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="0.005"} 0
+/// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="0.01"} 0
+/// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="0.025" } 0
+/// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="0.05"} 0
+/// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="0.1"} 0
+/// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="0.25"} 0
+/// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="0.5"} 0
+/// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="1"} 1
+/// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="2.5"} 1
+/// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="5"} 1
+/// app_http_requests_duration_bucket{host="localhost",method="GET",path="/",port="8080",le="+Inf"} 1
+/// app_http_requests_duration_sum{host="localhost",method="GET",path="/",port="8080"} 1
+/// app_http_requests_duration_count{host="localhost",method="GET",path="/",port="8080"} 1
+///
+/// # HELP app_http_requests_total The total number of HTTP requests.
+/// # TYPE app_http_requests_total counter
+/// app_http_requests_total{host="localhost",method="GET",path="/",port="8080"} 2
+/// app_http_requests_total{host="localhost",method="POST",path="/",port="8080"} 2
+/// ```
 /// # Static Metrics Example
 ///
-/// When the `static` attribute is enabled, a static `LazyLock` is generated with a SCREAMING_SNAKE_CASE name.
-/// The builder methods and `Default` implementation are made private, ensuring the only way to access
-/// the metrics is through the static instance.
+/// When the `static` attribute is enabled, a static `LazyLock` is generated with a
+/// SCREAMING_SNAKE_CASE name. The builder methods and `Default` implementation are made private,
+/// ensuring the only way to access the metrics is through the static instance.
 ///
 /// If `static` is enabled, `prometheus::default_registry()` is used.
 ///
 /// ```rust
-/// use prometric_derive::metrics;
 /// use prometric::{Counter, Gauge};
+/// use prometric_derive::metrics;
 ///
 /// #[metrics(scope = "app", static)]
 /// struct AppMetrics {
 ///     /// The total number of requests.
 ///     #[metric(labels = ["method"])]
 ///     requests: Counter,
-///     
+///
 ///     /// The current number of active connections.
 ///     #[metric]
 ///     active_connections: Gauge,
@@ -127,9 +127,29 @@ mod utils;
 /// // let metrics = AppMetrics::default();   // Error: Default is not implemented
 /// ```
 ///
+/// # Exporting Metrics
+/// An HTTP exporter is provided by [`prometric::exporter::ExporterBuilder`]. Usage:
+///
+/// ```rust
+/// use prometric::exporter::ExporterBuilder;
+///
+/// // Metric definitions...
+///
+/// // Export the metrics on an HTTP endpoint in the background:
+/// ExporterBuilder::new()
+///     // Specify the address to listen on
+///     .with_address("127.0.0.1:9090")
+///     // Set the global namespace for the metrics (usually the name of the application)
+///     .with_namespace("exporter")
+///     // Install the exporter. This will start an HTTP server and serve metrics on the specified
+///     // address.
+///     .install()
+///     .expect("Failed to install exporter");
+/// ```
 #[proc_macro_attribute]
 pub fn metrics(attr: TokenStream, item: TokenStream) -> TokenStream {
-    // NOTE: We use `proc_macro_attribute` here because we're actually rewriting the struct. Derive macros are additive.
+    // NOTE: We use `proc_macro_attribute` here because we're actually rewriting the struct. Derive
+    // macros are additive.
     let mut input = parse_macro_input!(item as ItemStruct);
 
     let attributes: MetricsAttr = match syn::parse(attr) {
@@ -139,7 +159,5 @@ pub fn metrics(attr: TokenStream, item: TokenStream) -> TokenStream {
         }
     };
 
-    expand::expand(attributes, &mut input)
-        .unwrap_or_else(|err| err.into_compile_error())
-        .into()
+    expand::expand(attributes, &mut input).unwrap_or_else(|err| err.into_compile_error()).into()
 }

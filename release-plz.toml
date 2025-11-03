@@ -55,3 +55,15 @@ commit_parsers = [
     # Skip everything else (individual commits without PR numbers)
     { message = ".*", skip = true },
 ]
+
+body = """
+  {% for group, commits in commits | group_by(attribute="group") -%}
+  ### {{ group }}
+  {% for commit in commits -%}
+  {% if commit.remote.pr_number -%}
+  - {{ commit.message }} by @{{ commit.remote.username }} in 
+  https://github.com/chainbound/prometric/pull/{{ commit.remote.pr_number }}
+  {% endif -%}
+  {% endfor -%}
+  {% endfor -%}
+"""

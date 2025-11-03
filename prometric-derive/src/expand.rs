@@ -6,7 +6,7 @@ use syn::{
     Result, Type,
 };
 
-use crate::utils::snake_to_pascal;
+use crate::utils::{snake_to_pascal, to_screaming_snake};
 
 /// The name of the metric attribute.
 const METRIC_ATTR_NAME: &str = "metric";
@@ -20,6 +20,9 @@ const DEFAULT_SEPARATOR: &str = "_";
 pub(super) struct MetricsAttr {
     /// The scope to use for the metrics. Used as a prefix for metric names.
     scope: Option<LitStr>,
+    /// If true, generates a static LazyLock with SCREAMING_SNAKE_CASE name.
+    #[darling(default, rename = "static")]
+    _static: bool,
 }
 
 enum MetricType {
@@ -444,14 +447,41 @@ pub fn expand(metrics_attr: MetricsAttr, input: &mut ItemStruct) -> Result<Token
         #input
     };
 
+    let static_decl = if metrics_attr._static {
+        let static_name = format_ident!("{}", to_screaming_snake(&ident.to_string()));
+        Some(quote! {
+            /// A static instance of the metrics, initialized with default values.
+            /// This static is generated when `static` is enabled on the `#[metrics]` attribute.
+            #vis static #static_name: std::sync::LazyLock<#ident> = std::sync::LazyLock::new(|| #ident::builder().build());
+        })
+    } else {
+        None
+    };
+
+    // When static is true, make builder() private so users must use the static LazyLock
+    let builder_vis = if metrics_attr._static {
+        quote! {}
+    } else {
+        quote! { #vis }
+    };
+
+    // When static is true, don't implement Default
+    let default_impl = if metrics_attr._static {
+        quote! {}
+    } else {
+        quote! {
+            impl Default for #ident {
+                fn default() -> Self {
+                    Self::builder().build()
+                }
+            }
+        }
+    };
+
     output = quote! {
         #output
 
-        impl Default for #ident {
-            fn default() -> Self {
-                Self::builder().build()
-            }
-        }
+        #default_impl
 
         #(#definitions)*
 
@@ -460,7 +490,7 @@ pub fn expand(metrics_attr: MetricsAttr, input: &mut ItemStruct) -> Result<Token
         impl #ident {
             /// Create a new builder for the metrics struct.
             /// It will be initialized with the default registry and no labels.
-            #vis fn builder<'a>() -> #builder_name<'a> {
+            #builder_vis fn builder<'a>() -> #builder_name<'a> {
                 #builder_name {
                     registry: prometheus::default_registry(),
                     labels: std::collections::HashMap::new(),
@@ -470,6 +500,14 @@ pub fn expand(metrics_attr: MetricsAttr, input: &mut ItemStruct) -> Result<Token
             #(#accessors)*
         }
     };
+
+    if let Some(static_decl) = static_decl {
+        output = quote! {
+            #output
+
+            #static_decl
+        };
+    }
 
     Ok(output)
 }

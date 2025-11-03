@@ -12,6 +12,11 @@ mod utils;
 /// the attributes on the fields. It also generates an ergonomic accessor API for each of the
 /// defined metrics.
 ///
+/// # Attributes
+///
+/// - `scope`: Sets the prefix for metric names (required)
+/// - `static`: If enabled, generates a static `LazyLock` with a SCREAMING_SNAKE_CASE name.
+///
 /// # Example
 /// ```rust
 /// use prometric_derive::metrics;
@@ -89,6 +94,37 @@ mod utils;
 /// # TYPE app_http_requests_total counter
 /// app_http_requests_total{host="localhost",method="GET",path="/",port="8080"} 2
 /// app_http_requests_total{host="localhost",method="POST",path="/",port="8080"} 2
+/// ```
+/// # Static Metrics Example
+///
+/// When the `static` attribute is enabled, a static `LazyLock` is generated with a
+/// SCREAMING_SNAKE_CASE name. The builder methods and `Default` implementation are made private,
+/// ensuring the only way to access the metrics is through the static instance.
+///
+/// If `static` is enabled, `prometheus::default_registry()` is used.
+///
+/// ```rust
+/// use prometric::{Counter, Gauge};
+/// use prometric_derive::metrics;
+///
+/// #[metrics(scope = "app", static)]
+/// struct AppMetrics {
+///     /// The total number of requests.
+///     #[metric(labels = ["method"])]
+///     requests: Counter,
+///
+///     /// The current number of active connections.
+///     #[metric]
+///     active_connections: Gauge,
+/// }
+///
+/// // Use the static directly anywhere
+/// APP_METRICS.requests("GET").inc();
+/// APP_METRICS.active_connections().set(10);
+///
+/// // The following would not compile:
+/// // let metrics = AppMetrics::builder();  // Error: builder() is private
+/// // let metrics = AppMetrics::default();   // Error: Default is not implemented
 /// ```
 #[proc_macro_attribute]
 pub fn metrics(attr: TokenStream, item: TokenStream) -> TokenStream {

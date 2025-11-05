@@ -98,7 +98,7 @@ impl ProcessCollector {
         let threads = process.tasks().map(|tasks| tasks.len()).unwrap_or(0);
         let open_fds = process.open_files().unwrap_or(0);
         let max_fds = process.open_files_limit().unwrap_or(0);
-        let cpu_usage = process.cpu_usage() * self.cores as f32;
+        let cpu_usage = process.cpu_usage() / self.cores as f32;
         let resident_memory = process.memory();
         let resident_memory_usage = resident_memory as f64 / self.sys.total_memory() as f64;
         let disk_usage = process.disk_usage().total_written_bytes;

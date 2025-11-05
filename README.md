@@ -151,7 +151,7 @@ When the `process` feature is enabled, the `ProcessCollector` can be used to col
 use prometric::process::ProcessCollector;
 use prometric_derive::metrics;
 
-let collector = ProcessCollector::new(&registry);
+let collector = ProcessCollector::default();
 collector.collect();
 ```
 

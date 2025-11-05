@@ -11,6 +11,9 @@ use std::collections::HashMap;
 #[cfg(feature = "exporter")]
 pub mod exporter;
 
+#[cfg(feature = "process")]
+pub mod process;
+
 /// Sealed trait to prevent outside code from implementing the metric types.
 mod private {
     pub trait Sealed {}

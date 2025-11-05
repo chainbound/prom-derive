@@ -31,6 +31,11 @@ type UintCounter = GenericGauge<AtomicU64>;
 ///
 /// let registry = Registry::new();
 /// let collector = ProcessCollector::new(&registry);
+///
+/// // OR run with the default registry
+/// let collector = ProcessCollector::default();
+///
+/// // Collect the metrics
 /// collector.collect();
 /// ```
 pub struct ProcessCollector {
@@ -98,10 +103,12 @@ impl ProcessCollector {
         let resident_memory_usage = resident_memory as f64 / self.sys.total_memory() as f64;
         let disk_usage = process.disk_usage().total_written_bytes;
 
-        self.metrics.threads.set(threads as u64);
-        self.metrics.cpu_usage.set(cpu_usage as f64);
+        self.metrics.cores.set(self.cores);
         self.metrics.max_cpu_freq.set(max_cpu_freq);
         self.metrics.min_cpu_freq.set(min_cpu_freq);
+
+        self.metrics.threads.set(threads as u64);
+        self.metrics.cpu_usage.set(cpu_usage as f64);
         self.metrics.resident_memory.set(resident_memory);
         self.metrics.resident_memory_usage.set(resident_memory_usage);
         self.metrics.start_time.set(process.start_time());
@@ -112,10 +119,14 @@ impl ProcessCollector {
 }
 
 struct ProcessMetrics {
-    threads: UintGauge,
-    cpu_usage: Gauge,
+    // System metrics
+    cores: UintGauge,
     max_cpu_freq: UintGauge,
     min_cpu_freq: UintGauge,
+
+    // Process metrics
+    threads: UintGauge,
+    cpu_usage: Gauge,
     resident_memory: UintGauge,
     resident_memory_usage: Gauge,
     start_time: UintGauge,
@@ -126,6 +137,22 @@ struct ProcessMetrics {
 
 impl ProcessMetrics {
     pub fn new(registry: &prometheus::Registry) -> Self {
+        let cores = UintGauge::new(
+            "system_cpu_cores",
+            "The number of logical CPU cores available in the system.",
+        )
+        .unwrap();
+        let max_cpu_freq = UintGauge::new(
+            "system_max_cpu_frequency",
+            "The maximum CPU frequency of all cores in MHz.",
+        )
+        .unwrap();
+        let min_cpu_freq = UintGauge::new(
+            "system_min_cpu_frequency",
+            "The minimum CPU frequency of all cores in MHz.",
+        )
+        .unwrap();
+
         let threads = UintGauge::new(
             "process_threads",
             "The number of OS threads used by the process (Linux only).",
@@ -134,16 +161,6 @@ impl ProcessMetrics {
         let cpu_usage =
             Gauge::new("process_cpu_usage", "The CPU usage of the process as a percentage.")
                 .unwrap();
-        let max_cpu_freq = UintGauge::new(
-            "process_max_cpu_freq",
-            "The maximum CPU frequency of all cores in MHz.",
-        )
-        .unwrap();
-        let min_cpu_freq = UintGauge::new(
-            "process_min_cpu_freq",
-            "The minimum CPU frequency of all cores in MHz.",
-        )
-        .unwrap();
         let resident_memory = UintGauge::new(
             "process_resident_memory_bytes",
             "The resident memory of the process in bytes. (RSS)",
@@ -176,10 +193,12 @@ impl ProcessMetrics {
         .unwrap();
 
         // Register all metrics with the registry
-        registry.register(Box::new(threads.clone())).unwrap();
-        registry.register(Box::new(cpu_usage.clone())).unwrap();
+        registry.register(Box::new(cores.clone())).unwrap();
         registry.register(Box::new(max_cpu_freq.clone())).unwrap();
         registry.register(Box::new(min_cpu_freq.clone())).unwrap();
+
+        registry.register(Box::new(threads.clone())).unwrap();
+        registry.register(Box::new(cpu_usage.clone())).unwrap();
         registry.register(Box::new(resident_memory.clone())).unwrap();
         registry.register(Box::new(resident_memory_usage.clone())).unwrap();
         registry.register(Box::new(start_time.clone())).unwrap();
@@ -188,10 +207,11 @@ impl ProcessMetrics {
         registry.register(Box::new(disk_written_bytes.clone())).unwrap();
 
         Self {
-            threads,
-            cpu_usage,
+            cores,
             max_cpu_freq,
             min_cpu_freq,
+            threads,
+            cpu_usage,
             resident_memory,
             resident_memory_usage,
             start_time,

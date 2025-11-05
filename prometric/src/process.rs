@@ -30,10 +30,10 @@ type UintCounter = GenericGauge<AtomicU64>;
 /// use prometric::process::ProcessCollector;
 ///
 /// let registry = Registry::new();
-/// let collector = ProcessCollector::new(&registry);
+/// let mut collector = ProcessCollector::new(&registry);
 ///
 /// // OR run with the default registry
-/// let collector = ProcessCollector::default();
+/// let mut collector = ProcessCollector::default();
 ///
 /// // Collect the metrics
 /// collector.collect();

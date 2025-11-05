@@ -156,7 +156,7 @@ mod utils;
 /// use prometric::process::ProcessCollector;
 /// use prometric_derive::metrics;
 ///
-/// let collector = ProcessCollector::default();
+/// let mut collector = ProcessCollector::default();
 /// collector.collect();
 /// ```
 ///

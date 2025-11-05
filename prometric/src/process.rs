@@ -61,7 +61,7 @@ impl ProcessCollector {
         // Create the stats that will be refreshed
         let specifics = RefreshKind::nothing()
             .with_cpu(CpuRefreshKind::everything())
-            .with_memory(MemoryRefreshKind::everything())
+            .with_memory(MemoryRefreshKind::nothing().with_ram())
             .with_processes(
                 ProcessRefreshKind::nothing()
                     .with_cpu()

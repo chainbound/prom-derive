@@ -139,9 +139,9 @@ async fn serve(
             serve_req(req, registry.clone(), path.clone(), global_prefix.clone())
         });
 
-        if let Err(err) = http1::Builder::new().serve_connection(io, service).await {
-            return Err(ExporterError::ServeError(err));
-        };
+        tokio::spawn(async move {
+            let _ = http1::Builder::new().serve_connection(io, service).await;
+        });
     }
 }
 

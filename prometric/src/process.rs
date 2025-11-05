@@ -42,6 +42,12 @@ pub struct ProcessCollector {
     metrics: ProcessMetrics,
 }
 
+impl Default for ProcessCollector {
+    fn default() -> Self {
+        Self::new(&prometheus::default_registry())
+    }
+}
+
 impl ProcessCollector {
     pub fn new(registry: &Registry) -> Self {
         let pid = Pid::from_u32(std::process::id());

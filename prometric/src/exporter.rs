@@ -20,7 +20,7 @@ impl Default for ExporterBuilder {
         Self {
             registry: None,
             address: "0.0.0.0:9090".to_owned(),
-            path: "/".to_owned(),
+            path: "/metrics".to_owned(),
             global_prefix: None,
         }
     }

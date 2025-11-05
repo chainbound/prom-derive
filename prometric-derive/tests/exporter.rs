@@ -31,7 +31,7 @@ fn test_exporter_thread() {
         // Create a client and make a request to the metrics endpoint
         let client = Client::builder(TokioExecutor::new()).build_http::<Empty<Bytes>>();
 
-        let uri = "http://127.0.0.1:9090/".parse().unwrap();
+        let uri = "http://127.0.0.1:9090/metrics".parse().unwrap();
         let response = client.get(uri).await.expect("Failed to make request");
 
         assert_eq!(response.status(), 200);
@@ -56,7 +56,7 @@ async fn test_exporter_async() {
 
     ExporterBuilder::new()
         .with_address("127.0.0.1:9091")
-        .with_path("/metrics")
+        .with_path("/metrics/prometheus")
         .with_namespace("app")
         .install()
         .unwrap();
@@ -68,7 +68,7 @@ async fn test_exporter_async() {
     // Create a client and make a request to the metrics endpoint
     let client = Client::builder(TokioExecutor::new()).build_http::<Empty<Bytes>>();
 
-    let uri = "http://127.0.0.1:9091/metrics".parse().unwrap();
+    let uri = "http://127.0.0.1:9091/metrics/prometheus".parse().unwrap();
     let response = client.get(uri).await.expect("Failed to make request");
 
     assert_eq!(response.status(), 200);

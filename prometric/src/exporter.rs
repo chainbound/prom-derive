@@ -20,7 +20,7 @@ impl Default for ExporterBuilder {
         Self {
             registry: None,
             address: "0.0.0.0:9090".to_owned(),
-            path: "/".to_owned(),
+            path: "/metrics".to_owned(),
             global_prefix: None,
         }
     }
@@ -139,9 +139,9 @@ async fn serve(
             serve_req(req, registry.clone(), path.clone(), global_prefix.clone())
         });
 
-        if let Err(err) = http1::Builder::new().serve_connection(io, service).await {
-            return Err(ExporterError::ServeError(err));
-        };
+        tokio::spawn(async move {
+            let _ = http1::Builder::new().serve_connection(io, service).await;
+        });
     }
 }
 

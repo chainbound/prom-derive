@@ -146,6 +146,53 @@ mod utils;
 ///     .install()
 ///     .expect("Failed to install exporter");
 /// ```
+///
+/// # Process Metrics Example
+///
+/// When the `process` feature is enabled, the `ProcessCollector` is used to collect metrics about
+/// the current process.
+///
+/// ```rust
+/// use prometric::process::ProcessCollector;
+/// use prometric_derive::metrics;
+///
+/// let mut collector = ProcessCollector::default();
+/// collector.collect();
+/// ```
+///
+/// #### Output
+/// ```text
+/// # HELP process_cpu_usage The CPU usage of the process as a percentage.
+/// # TYPE process_cpu_usage gauge
+/// process_cpu_usage 0.7814099788665771
+/// # HELP process_disk_written_bytes_total The total written bytes to disk by the process.
+/// # TYPE process_disk_written_bytes_total gauge
+/// process_disk_written_bytes_total 0
+/// # HELP process_max_cpu_freq The maximum CPU frequency of all cores in MHz.
+/// # TYPE process_max_cpu_freq gauge
+/// process_max_cpu_freq 4464
+/// # HELP process_max_fds The maximum number of open file descriptors of the process.
+/// # TYPE process_max_fds gauge
+/// process_max_fds 10240
+/// # HELP process_min_cpu_freq The minimum CPU frequency of all cores in MHz.
+/// # TYPE process_min_cpu_freq gauge
+/// process_min_cpu_freq 4464
+/// # HELP process_open_fds The number of open file descriptors of the process.
+/// # TYPE process_open_fds gauge
+/// process_open_fds 45
+/// # HELP process_resident_memory_bytes The resident memory of the process in bytes. (RSS)
+/// # TYPE process_resident_memory_bytes gauge
+/// process_resident_memory_bytes 4603904
+/// # HELP process_resident_memory_usage The resident memory usage of the process as a percentage of
+/// the total memory available. # TYPE process_resident_memory_usage gauge
+/// process_resident_memory_usage 0.00013399124145507813
+/// # HELP process_start_time_seconds The start time of the process in UNIX seconds.
+/// # TYPE process_start_time_seconds gauge
+/// process_start_time_seconds 1762338704
+/// # HELP process_threads The number of OS threads used by the process (Linux only).
+/// # TYPE process_threads gauge
+/// process_threads 1
+/// ```
 #[proc_macro_attribute]
 pub fn metrics(attr: TokenStream, item: TokenStream) -> TokenStream {
     // NOTE: We use `proc_macro_attribute` here because we're actually rewriting the struct. Derive

@@ -86,13 +86,17 @@ impl ProcessCollector {
         self.pid.as_u32()
     }
 
-    /// Collect the metrics for the process.
+    /// Collect system and process metrics.
     pub fn collect(&mut self) {
+        let start = std::time::Instant::now();
         self.sys.refresh_specifics(self.specifics);
 
         let cpus = self.sys.cpus();
         let min_cpu_freq = cpus.iter().map(|cpu| cpu.frequency()).min().unwrap();
         let max_cpu_freq = cpus.iter().map(|cpu| cpu.frequency()).max().unwrap();
+        let system_cpu_usage = self.sys.global_cpu_usage();
+        let system_memory_usage =
+            self.sys.used_memory() as f64 / self.sys.total_memory() as f64 * 100.0;
 
         let process = self.sys.process(self.pid).unwrap();
         let threads = process.tasks().map(|tasks| tasks.len()).unwrap_or(0);
@@ -103,9 +107,11 @@ impl ProcessCollector {
         let resident_memory_usage = resident_memory as f64 / self.sys.total_memory() as f64;
         let disk_usage = process.disk_usage().total_written_bytes;
 
-        self.metrics.cores.set(self.cores);
-        self.metrics.max_cpu_freq.set(max_cpu_freq);
-        self.metrics.min_cpu_freq.set(min_cpu_freq);
+        self.metrics.system_cores.set(self.cores);
+        self.metrics.system_max_cpu_freq.set(max_cpu_freq);
+        self.metrics.system_min_cpu_freq.set(min_cpu_freq);
+        self.metrics.system_cpu_usage.set(system_cpu_usage as f64);
+        self.metrics.system_memory_usage.set(system_memory_usage);
 
         self.metrics.threads.set(threads as u64);
         self.metrics.cpu_usage.set(cpu_usage as f64);
@@ -115,14 +121,19 @@ impl ProcessCollector {
         self.metrics.open_fds.set(open_fds as u64);
         self.metrics.max_fds.set(max_fds as u64);
         self.metrics.disk_written_bytes.set(disk_usage);
+
+        // Record the duration of the collection routine
+        self.metrics.collection_duration.set(start.elapsed().as_secs_f64());
     }
 }
 
 struct ProcessMetrics {
     // System metrics
-    cores: UintGauge,
-    max_cpu_freq: UintGauge,
-    min_cpu_freq: UintGauge,
+    system_cores: UintGauge,
+    system_max_cpu_freq: UintGauge,
+    system_min_cpu_freq: UintGauge,
+    system_cpu_usage: Gauge,
+    system_memory_usage: Gauge,
 
     // Process metrics
     threads: UintGauge,
@@ -133,25 +144,32 @@ struct ProcessMetrics {
     open_fds: UintGauge,
     max_fds: UintGauge,
     disk_written_bytes: UintCounter,
+
+    /// The duration of the associated collection routine
+    collection_duration: Gauge,
 }
 
 impl ProcessMetrics {
     pub fn new(registry: &prometheus::Registry) -> Self {
-        let cores = UintGauge::new(
+        let system_cores = UintGauge::new(
             "system_cpu_cores",
             "The number of logical CPU cores available in the system.",
         )
         .unwrap();
-        let max_cpu_freq = UintGauge::new(
+        let system_max_cpu_freq = UintGauge::new(
             "system_max_cpu_frequency",
             "The maximum CPU frequency of all cores in MHz.",
         )
         .unwrap();
-        let min_cpu_freq = UintGauge::new(
+        let system_min_cpu_freq = UintGauge::new(
             "system_min_cpu_frequency",
             "The minimum CPU frequency of all cores in MHz.",
         )
         .unwrap();
+        let system_cpu_usage =
+            Gauge::new("system_cpu_usage", "System-wide CPU usage percentage.").unwrap();
+        let system_memory_usage =
+            Gauge::new("system_memory_usage", "System-wide memory usage percentage.").unwrap();
 
         let threads = UintGauge::new(
             "process_threads",
@@ -192,10 +210,18 @@ impl ProcessMetrics {
         )
         .unwrap();
 
+        let collection_duration = Gauge::new(
+            "process_collection_duration_seconds",
+            "The duration of the associated collection routine in seconds.",
+        )
+        .unwrap();
+
         // Register all metrics with the registry
-        registry.register(Box::new(cores.clone())).unwrap();
-        registry.register(Box::new(max_cpu_freq.clone())).unwrap();
-        registry.register(Box::new(min_cpu_freq.clone())).unwrap();
+        registry.register(Box::new(system_cores.clone())).unwrap();
+        registry.register(Box::new(system_max_cpu_freq.clone())).unwrap();
+        registry.register(Box::new(system_min_cpu_freq.clone())).unwrap();
+        registry.register(Box::new(system_cpu_usage.clone())).unwrap();
+        registry.register(Box::new(system_memory_usage.clone())).unwrap();
 
         registry.register(Box::new(threads.clone())).unwrap();
         registry.register(Box::new(cpu_usage.clone())).unwrap();
@@ -205,11 +231,14 @@ impl ProcessMetrics {
         registry.register(Box::new(open_fds.clone())).unwrap();
         registry.register(Box::new(max_fds.clone())).unwrap();
         registry.register(Box::new(disk_written_bytes.clone())).unwrap();
+        registry.register(Box::new(collection_duration.clone())).unwrap();
 
         Self {
-            cores,
-            max_cpu_freq,
-            min_cpu_freq,
+            system_cores,
+            system_max_cpu_freq,
+            system_min_cpu_freq,
+            system_cpu_usage,
+            system_memory_usage,
             threads,
             cpu_usage,
             resident_memory,
@@ -218,6 +247,7 @@ impl ProcessMetrics {
             open_fds,
             max_fds,
             disk_written_bytes,
+            collection_duration,
         }
     }
 }

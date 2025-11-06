@@ -162,36 +162,48 @@ mod utils;
 ///
 /// #### Output
 /// ```text
+/// # HELP process_collection_duration_seconds The duration of the associated collection routine in
+/// seconds. # TYPE process_collection_duration_seconds gauge
+/// process_collection_duration_seconds 0.008691417
 /// # HELP process_cpu_usage The CPU usage of the process as a percentage.
 /// # TYPE process_cpu_usage gauge
-/// process_cpu_usage 0.7814099788665771
+/// process_cpu_usage 0.014495549723505974
 /// # HELP process_disk_written_bytes_total The total written bytes to disk by the process.
 /// # TYPE process_disk_written_bytes_total gauge
 /// process_disk_written_bytes_total 0
-/// # HELP process_max_cpu_freq The maximum CPU frequency of all cores in MHz.
-/// # TYPE process_max_cpu_freq gauge
-/// process_max_cpu_freq 4464
 /// # HELP process_max_fds The maximum number of open file descriptors of the process.
 /// # TYPE process_max_fds gauge
 /// process_max_fds 10240
-/// # HELP process_min_cpu_freq The minimum CPU frequency of all cores in MHz.
-/// # TYPE process_min_cpu_freq gauge
-/// process_min_cpu_freq 4464
 /// # HELP process_open_fds The number of open file descriptors of the process.
 /// # TYPE process_open_fds gauge
 /// process_open_fds 45
 /// # HELP process_resident_memory_bytes The resident memory of the process in bytes. (RSS)
 /// # TYPE process_resident_memory_bytes gauge
-/// process_resident_memory_bytes 4603904
+/// process_resident_memory_bytes 4915200
 /// # HELP process_resident_memory_usage The resident memory usage of the process as a percentage of
 /// the total memory available. # TYPE process_resident_memory_usage gauge
-/// process_resident_memory_usage 0.00013399124145507813
+/// process_resident_memory_usage 0.0001430511474609375
 /// # HELP process_start_time_seconds The start time of the process in UNIX seconds.
 /// # TYPE process_start_time_seconds gauge
-/// process_start_time_seconds 1762338704
+/// process_start_time_seconds 1762438572
 /// # HELP process_threads The number of OS threads used by the process (Linux only).
 /// # TYPE process_threads gauge
 /// process_threads 1
+/// # HELP system_cpu_cores The number of logical CPU cores available in the system.
+/// # TYPE system_cpu_cores gauge
+/// system_cpu_cores 10
+/// # HELP system_cpu_usage System-wide CPU usage percentage.
+/// # TYPE system_cpu_usage gauge
+/// system_cpu_usage 15.498806953430176
+/// # HELP system_max_cpu_frequency The maximum CPU frequency of all cores in MHz.
+/// # TYPE system_max_cpu_frequency gauge
+/// system_max_cpu_frequency 4464
+/// # HELP system_memory_usage System-wide memory usage percentage.
+/// # TYPE system_memory_usage gauge
+/// system_memory_usage 65.11974334716797
+/// # HELP system_min_cpu_frequency The minimum CPU frequency of all cores in MHz.
+/// # TYPE system_min_cpu_frequency gauge
+/// system_min_cpu_frequency 4464
 /// ```
 #[proc_macro_attribute]
 pub fn metrics(attr: TokenStream, item: TokenStream) -> TokenStream {

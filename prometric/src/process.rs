@@ -8,21 +8,10 @@ type UintGauge = GenericGauge<AtomicU64>;
 
 type UintCounter = GenericGauge<AtomicU64>;
 
-/// A collector for process metrics.
+/// A collector for process (and some system) metrics.
 ///
 /// # Metrics
-/// - `process_threads`: The number of OS threads used by the process (Linux only).
-/// - `process_cpu_cores`: The number of logical CPU cores available in the system.
-/// - `process_cpu_usage`: The CPU usage of the process as a percentage.
-/// - `process_max_cpu_freq`: The maximum CPU frequency of all cores in MHz.
-/// - `process_min_cpu_freq`: The minimum CPU frequency of all cores in MHz.
-/// - `process_resident_memory_bytes`: The resident memory of the process in bytes.
-/// - `process_resident_memory_usage`: The resident memory usage of the process as a percentage of
-///   the total memory available.
-/// - `process_start_time_seconds`: The start time of the process in UNIX seconds.
-/// - `process_open_fds`: The number of open file descriptors of the process.
-/// - `process_max_fds`: The maximum number of open file descriptors of the process.
-/// - `process_disk_written_bytes_total`: The total written bytes to disk by the process.
+/// See the documentation for the [`ProcessMetrics`] struct for the list of metrics.
 ///
 /// # Example
 /// ```rust
@@ -127,25 +116,39 @@ impl ProcessCollector {
     }
 }
 
-struct ProcessMetrics {
+/// A collection of metrics for a process, with some useful system metrics.
+pub struct ProcessMetrics {
     // System metrics
+    /// The number of logical CPU cores available in the system.
     system_cores: UintGauge,
+    /// The maximum CPU frequency of all cores in MHz.
     system_max_cpu_freq: UintGauge,
+    /// The minimum CPU frequency of all cores in MHz.
     system_min_cpu_freq: UintGauge,
+    /// The system-wide CPU usage percentage.
     system_cpu_usage: Gauge,
+    /// The system-wide memory usage percentage.
     system_memory_usage: Gauge,
 
     // Process metrics
+    /// The number of OS threads used by the process (Linux only).
     threads: UintGauge,
+    /// The CPU usage of the process as a percentage.
     cpu_usage: Gauge,
+    /// The resident memory of the process in bytes. (RSS)
     resident_memory: UintGauge,
+    /// The resident memory usage of the process as a percentage of the total memory available.
     resident_memory_usage: Gauge,
+    /// The start time of the process in UNIX seconds.
     start_time: UintGauge,
+    /// The number of open file descriptors of the process.
     open_fds: UintGauge,
+    /// The maximum number of open file descriptors of the process.
     max_fds: UintGauge,
+    /// The total written bytes to disk by the process.
     disk_written_bytes: UintCounter,
 
-    /// The duration of the associated collection routine
+    /// The duration of the associated collection routine in seconds.
     collection_duration: Gauge,
 }
 

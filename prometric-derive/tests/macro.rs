@@ -163,3 +163,33 @@ fn test_static() {
     TEST_METRICS.test_counter("value1").inc();
     TEST_METRICS.test_gauge().inc();
 }
+
+#[test]
+fn bucket_expressions_work() {
+    const BUCKETS: &[f64] = &[0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0];
+    fn buckets() -> &'static [f64] {
+        BUCKETS
+    }
+
+    #[prometric_derive::metrics(scope = "test")]
+    struct BucketMetrics {
+        /// Test histogram metric with bucket expression.
+        #[metric(buckets = buckets())]
+        hist: prometric::Histogram,
+    }
+
+    let registry = prometheus::default_registry();
+    let app_metrics = BucketMetrics::builder().with_registry(registry).build();
+
+    let duration = Duration::from_secs(1);
+    app_metrics.hist().observe(duration.as_secs_f64());
+
+    let encoder = prometheus::TextEncoder::new();
+    let metric_families = registry.gather(); // Wait, need to expose registry
+
+    let mut buffer = vec![];
+    encoder.encode(&metric_families, &mut buffer).unwrap();
+    let output = String::from_utf8(buffer).unwrap();
+
+    assert!(output.contains("test_hist"));
+}

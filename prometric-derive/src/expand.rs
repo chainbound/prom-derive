@@ -108,7 +108,7 @@ struct MetricBuilder {
     /// The label keys to define for the metric.
     labels: Option<Vec<String>>,
     /// The buckets to use for the histogram.
-    buckets: Option<Vec<LitFloat>>,
+    buckets: Option<syn::Expr>,
     /// The full name of the metric.
     /// = scope + separator + identifier || rename.
     full_name: String,
@@ -192,8 +192,8 @@ impl MetricBuilder {
         let buckets = &self.buckets;
 
         if let MetricType::Histogram(_) = &self.ty {
-            let buckets = if let Some(buckets) = buckets {
-                quote! { Some(vec![#(#buckets),*]) }
+            let buckets = if let Some(buckets_expr) = buckets {
+                quote! { Some(#buckets_expr) }
             } else {
                 quote! { None }
             };
@@ -221,10 +221,8 @@ impl MetricBuilder {
         }
 
         if let MetricType::Histogram(_) = &self.ty {
-            if let Some(buckets) = &self.buckets {
-                let bucket_str =
-                    buckets.iter().map(|lit| lit.base10_digits()).collect::<Vec<_>>().join(", ");
-                doc_builder.push_str(&format!("\n* Buckets: [{bucket_str}]"));
+            if let Some(buckets_expr) = &self.buckets {
+                doc_builder.push_str(&format!("\n* Buckets: {}", quote! { #buckets_expr }));
             } else {
                 doc_builder.push_str("\n* Buckets: [prometheus::DEFAULT_BUCKETS]");
             }
@@ -384,7 +382,7 @@ struct MetricField {
     /// The help string to use for the metric. Takes precedence over the doc attribute.
     help: Option<String>,
     /// The buckets to use for the histogram.
-    buckets: Option<Vec<LitFloat>>,
+    buckets: Option<syn::Expr>,
     /// The sample rate to use for the histogram.
     /// TODO: Implement this.
     sample: Option<LitFloat>,

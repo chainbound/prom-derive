@@ -30,7 +30,8 @@ struct AppMetrics {
     http_requests: Counter,
 
     // For histograms, the `buckets` attribute is optional. It will default to [prometheus::DEFAULT_BUCKETS] if not provided.
-    /// The duration of HTTP requests.
+    // `buckets` can also be an expression that evaluates into a `Vec<f64>`.
+    /// The duration of HTTP requests. 
     #[metric(labels = ["method", "path"], buckets = [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0])]
     http_requests_duration: Histogram,
 

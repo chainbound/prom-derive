@@ -23,5 +23,7 @@ sysinfo = { version = "0.37.2", optional = true }
 
 [features]
 default = ["exporter"]
+# Expose HTTP exporter functionality with the `hyper` crate. Enabled by default.
 exporter = ["dep:hyper", "dep:hyper-util", "dep:tokio"]
+# Expose process metrics collection functionality with the `sysinfo` crate.
 process = ["dep:sysinfo"]

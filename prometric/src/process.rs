@@ -305,10 +305,14 @@ mod tests {
             .name("test-thread-1".to_string())
             .spawn(|| {
                 let mut hasher = std::hash::DefaultHasher::new();
-                for _ in 0..2000 {
-                    std::thread::sleep(std::time::Duration::from_millis(1));
+                let end = Instant::now() + std::time::Duration::from_secs(3);
 
-                    hasher.write_u64(std::time::Instant::now().elapsed().as_nanos() as u64);
+                // Busy loop with small sleep
+                while Instant::now() < end {
+                    for i in 0..10000 {
+                        hasher.write_u64(i);
+                        std::thread::sleep(std::time::Duration::from_micros(1));
+                    }
                 }
 
                 println!("test-thread-1: {}", hasher.finish());
@@ -318,9 +322,17 @@ mod tests {
         let handle2 = thread::Builder::new()
             .name("test-thread-2".to_string())
             .spawn(|| {
-                for _ in 0..2000 {
-                    std::thread::sleep(std::time::Duration::from_millis(1));
+                let end = Instant::now() + std::time::Duration::from_secs(3);
+                let mut sum = 0u64;
+
+                // Busy loop
+                while Instant::now() < end {
+                    for i in 0..10000 {
+                        sum = sum.wrapping_add(i * i);
+                    }
                 }
+
+                println!("test-thread-2: {}", sum);
             })
             .unwrap();
 

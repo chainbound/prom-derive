@@ -183,7 +183,7 @@ process_resident_memory_usage 0.00007072418111501723
 # HELP process_start_time_seconds The start time of the process in UNIX seconds.
 # TYPE process_start_time_seconds gauge
 process_start_time_seconds 1763056609
-# HELP process_thread_stats The statistics of the threads used by the process.
+# HELP process_thread_stats The statistics of the threads used by the process (Linux only).
 # TYPE process_thread_stats gauge
 process_thread_stats{name="process::tests:",pid="980490"} 0.9259260296821594
 process_thread_stats{name="test-thread-1",pid="980491"} 0

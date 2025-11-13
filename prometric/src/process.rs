@@ -100,18 +100,10 @@ impl ProcessCollector {
                 let pid = pid.to_string();
                 let name = thread.name().to_str().unwrap_or(pid.as_str());
 
-                // Calculate the busy ratio of the thread as a percentage of the CPU usage of
-                // the process.
-                let busy_ratio = if process.cpu_usage() > 0.0 {
-                    thread.cpu_usage() / process.cpu_usage() * 100.0
-                } else {
-                    0.0
-                };
-
                 self.metrics
                     .thread_usage
                     .with_label_values(&[pid.as_str(), name])
-                    .set(busy_ratio as f64);
+                    .set(thread.cpu_usage() as f64);
             });
         }
 
@@ -312,7 +304,6 @@ mod tests {
                 while Instant::now() < end {
                     for i in 0..10000 {
                         hasher.write_u64(i);
-                        std::thread::sleep(std::time::Duration::from_nanos(1));
                     }
                 }
 

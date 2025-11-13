@@ -302,7 +302,7 @@ mod tests {
         let handle = thread::Builder::new()
             .name("test-thread-1".to_string())
             .spawn(|| {
-                for _ in 0..1000 {
+                for _ in 0..2000 {
                     std::thread::sleep(std::time::Duration::from_millis(1));
                 }
             })
@@ -310,16 +310,20 @@ mod tests {
 
         let handle2 = thread::Builder::new()
             .spawn(|| {
-                for _ in 0..1000000 {
-                    std::thread::sleep(std::time::Duration::from_micros(1));
+                for _ in 0..2000 {
+                    std::thread::sleep(std::time::Duration::from_millis(1));
                 }
             })
             .unwrap();
 
         let registry = Registry::new();
         let mut collector = ProcessCollector::new(&registry);
+        collector.collect();
+
+        std::thread::sleep(std::time::Duration::from_secs(1));
         let start = Instant::now();
         collector.collect();
+
         let duration = start.elapsed();
         println!("Time taken for collection: {:?}", duration);
 

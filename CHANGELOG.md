@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Bug Fixes
+- fix thread usage by @mempirate in
+https://github.com/chainbound/prometric/pull/39
+- don't enable feature by default by @mempirate in
+https://github.com/chainbound/prometric/pull/33
+### Documentation
+- update lib docs + README by @mempirate in
+https://github.com/chainbound/prometric/pull/38
+- update lib docs + README by @mempirate in
+https://github.com/chainbound/prometric/pull/38
+- update lib docs + README by @mempirate in
+https://github.com/chainbound/prometric/pull/33
+- update doc comment by @mempirate in
+https://github.com/chainbound/prometric/pull/33
+### Features
+- support expressions that evalute into a Vec<f64> for buckets by @thedevbirb in
+https://github.com/chainbound/prometric/pull/37
+- add thread busyness stats by @mempirate in
+https://github.com/chainbound/prometric/pull/38
+- add collection time metric, more system stats by @mempirate in
+https://github.com/chainbound/prometric/pull/33
 
 ### Bug Fixes
 

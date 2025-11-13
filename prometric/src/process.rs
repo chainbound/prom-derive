@@ -103,7 +103,9 @@ impl ProcessCollector {
                 // Calculate the busy ratio of the thread as a percentage of the CPU usage of
                 // the process.
                 let busy_ratio = if process.cpu_usage() > 0.0 {
-                    thread.cpu_usage() / process.cpu_usage()
+                    println!("{name}: thread.cpu_usage(): {}", thread.cpu_usage());
+                    println!("{name}: process.cpu_usage(): {}", process.cpu_usage());
+                    thread.cpu_usage() / process.cpu_usage() * 100.0
                 } else {
                     0.0
                 };

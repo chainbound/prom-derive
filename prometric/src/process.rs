@@ -293,7 +293,7 @@ impl ProcessMetrics {
 
 #[cfg(test)]
 mod tests {
-    use std::{thread, time::Instant};
+    use std::{hash::Hasher as _, thread, time::Instant};
 
     use super::*;
 
@@ -302,13 +302,19 @@ mod tests {
         let handle = thread::Builder::new()
             .name("test-thread-1".to_string())
             .spawn(|| {
+                let mut hasher = std::hash::DefaultHasher::new();
                 for _ in 0..2000 {
                     std::thread::sleep(std::time::Duration::from_millis(1));
+
+                    hasher.write_u64(std::time::Instant::now().elapsed().as_nanos() as u64);
                 }
+
+                println!("test-thread-1: {}", hasher.finish());
             })
             .unwrap();
 
         let handle2 = thread::Builder::new()
+            .name("test-thread-2".to_string())
             .spawn(|| {
                 for _ in 0..2000 {
                     std::thread::sleep(std::time::Duration::from_millis(1));

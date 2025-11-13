@@ -293,12 +293,29 @@ impl ProcessMetrics {
 
 #[cfg(test)]
 mod tests {
-    use std::time::Instant;
+    use std::{thread, time::Instant};
 
     use super::*;
 
     #[test]
     fn test_process_collector() {
+        let handle = thread::Builder::new()
+            .name("test-thread-1".to_string())
+            .spawn(|| {
+                for _ in 0..1000 {
+                    std::thread::sleep(std::time::Duration::from_millis(1));
+                }
+            })
+            .unwrap();
+
+        let handle2 = thread::Builder::new()
+            .spawn(|| {
+                for _ in 0..1000000 {
+                    std::thread::sleep(std::time::Duration::from_micros(1));
+                }
+            })
+            .unwrap();
+
         let registry = Registry::new();
         let mut collector = ProcessCollector::new(&registry);
         let start = Instant::now();
@@ -310,5 +327,8 @@ mod tests {
         let encoder = prometheus::TextEncoder::new();
         let body = encoder.encode_to_string(&metrics).unwrap();
         println!("{}", body);
+
+        handle.join().unwrap();
+        handle2.join().unwrap();
     }
 }

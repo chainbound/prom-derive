@@ -109,7 +109,7 @@ impl ProcessCollector {
                 };
 
                 self.metrics
-                    .thread_stats
+                    .thread_usage
                     .with_label_values(&[pid.as_str(), name])
                     .set(busy_ratio as f64);
             });
@@ -174,7 +174,7 @@ pub struct ProcessMetrics {
     /// The total written bytes to disk by the process.
     disk_written_bytes: UintCounter,
     /// The statistics of the threads used by the process (Linux only).
-    thread_stats: GaugeVec,
+    thread_usage: GaugeVec,
 
     /// The duration of the associated collection routine in seconds.
     collection_duration: Gauge,
@@ -240,10 +240,10 @@ impl ProcessMetrics {
             "The total written bytes to disk by the process.",
         )
         .unwrap();
-        let thread_stats: GaugeVec = GaugeVec::new(
+        let thread_usage: GaugeVec = GaugeVec::new(
             Opts::new(
-                "process_thread_stats",
-                "The statistics of the threads used by the process (Linux only).",
+                "process_thread_usage",
+                "Per-thread CPU usage as a percentage of the process's CPU usage (Linux only).",
             ),
             &["pid", "name"],
         )
@@ -270,7 +270,7 @@ impl ProcessMetrics {
         registry.register(Box::new(open_fds.clone())).unwrap();
         registry.register(Box::new(max_fds.clone())).unwrap();
         registry.register(Box::new(disk_written_bytes.clone())).unwrap();
-        registry.register(Box::new(thread_stats.clone())).unwrap();
+        registry.register(Box::new(thread_usage.clone())).unwrap();
 
         registry.register(Box::new(collection_duration.clone())).unwrap();
 
@@ -288,7 +288,7 @@ impl ProcessMetrics {
             open_fds,
             max_fds,
             disk_written_bytes,
-            thread_stats,
+            thread_usage,
             collection_duration,
         }
     }

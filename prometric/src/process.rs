@@ -103,8 +103,6 @@ impl ProcessCollector {
                 // Calculate the busy ratio of the thread as a percentage of the CPU usage of
                 // the process.
                 let busy_ratio = if process.cpu_usage() > 0.0 {
-                    println!("{name}: thread.cpu_usage(): {}", thread.cpu_usage());
-                    println!("{name}: process.cpu_usage(): {}", process.cpu_usage());
                     thread.cpu_usage() / process.cpu_usage() * 100.0
                 } else {
                     0.0
@@ -175,7 +173,7 @@ pub struct ProcessMetrics {
     max_fds: UintGauge,
     /// The total written bytes to disk by the process.
     disk_written_bytes: UintCounter,
-    /// The statistics of the threads used by the process.
+    /// The statistics of the threads used by the process (Linux only).
     thread_stats: GaugeVec,
 
     /// The duration of the associated collection routine in seconds.
@@ -243,7 +241,10 @@ impl ProcessMetrics {
         )
         .unwrap();
         let thread_stats: GaugeVec = GaugeVec::new(
-            Opts::new("process_thread_stats", "The statistics of the threads used by the process."),
+            Opts::new(
+                "process_thread_stats",
+                "The statistics of the threads used by the process (Linux only).",
+            ),
             &["pid", "name"],
         )
         .unwrap();

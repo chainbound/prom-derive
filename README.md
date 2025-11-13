@@ -161,44 +161,49 @@ collector.collect();
 ```text
 # HELP process_collection_duration_seconds The duration of the associated collection routine in seconds.
 # TYPE process_collection_duration_seconds gauge
-process_collection_duration_seconds 0.008691417
+process_collection_duration_seconds 0.016130356
 # HELP process_cpu_usage The CPU usage of the process as a percentage.
 # TYPE process_cpu_usage gauge
-process_cpu_usage 0.014495549723505974
+process_cpu_usage 6.2536187171936035
 # HELP process_disk_written_bytes_total The total written bytes to disk by the process.
 # TYPE process_disk_written_bytes_total gauge
 process_disk_written_bytes_total 0
 # HELP process_max_fds The maximum number of open file descriptors of the process.
 # TYPE process_max_fds gauge
-process_max_fds 10240
+process_max_fds 1048576
 # HELP process_open_fds The number of open file descriptors of the process.
 # TYPE process_open_fds gauge
-process_open_fds 45
+process_open_fds 639
 # HELP process_resident_memory_bytes The resident memory of the process in bytes. (RSS)
 # TYPE process_resident_memory_bytes gauge
-process_resident_memory_bytes 4915200
+process_resident_memory_bytes 4702208
 # HELP process_resident_memory_usage The resident memory usage of the process as a percentage of the total memory available.
 # TYPE process_resident_memory_usage gauge
-process_resident_memory_usage 0.0001430511474609375
+process_resident_memory_usage 0.00007072418111501723
 # HELP process_start_time_seconds The start time of the process in UNIX seconds.
 # TYPE process_start_time_seconds gauge
-process_start_time_seconds 1762438572
+process_start_time_seconds 1763056609
+# HELP process_thread_stats The statistics of the threads used by the process.
+# TYPE process_thread_stats gauge
+process_thread_stats{name="process::tests:",pid="980490"} 0.9259260296821594
+process_thread_stats{name="test-thread-1",pid="980491"} 0
+process_thread_stats{name="test-thread-2",pid="980492"} 94.44445037841797
 # HELP process_threads The number of OS threads used by the process (Linux only).
 # TYPE process_threads gauge
-process_threads 1
+process_threads 3
 # HELP system_cpu_cores The number of logical CPU cores available in the system.
 # TYPE system_cpu_cores gauge
-system_cpu_cores 10
+system_cpu_cores 16
 # HELP system_cpu_usage System-wide CPU usage percentage.
 # TYPE system_cpu_usage gauge
-system_cpu_usage 15.498806953430176
+system_cpu_usage 6.7168498039245605
 # HELP system_max_cpu_frequency The maximum CPU frequency of all cores in MHz.
 # TYPE system_max_cpu_frequency gauge
-system_max_cpu_frequency 4464
+system_max_cpu_frequency 5339
 # HELP system_memory_usage System-wide memory usage percentage.
 # TYPE system_memory_usage gauge
-system_memory_usage 65.11974334716797
+system_memory_usage 6.398677876736871
 # HELP system_min_cpu_frequency The minimum CPU frequency of all cores in MHz.
 # TYPE system_min_cpu_frequency gauge
-system_min_cpu_frequency 4464
+system_min_cpu_frequency 545
 ```

@@ -311,7 +311,7 @@ mod tests {
                 while Instant::now() < end {
                     for i in 0..10000 {
                         hasher.write_u64(i);
-                        std::thread::sleep(std::time::Duration::from_micros(1));
+                        std::thread::sleep(std::time::Duration::from_nanos(1));
                     }
                 }
 

@@ -1,5 +1,5 @@
 use prometheus::{
-    Gauge, Registry,
+    Gauge, GaugeVec, Opts, Registry,
     core::{AtomicU64, GenericGauge},
 };
 use sysinfo::{CpuRefreshKind, MemoryRefreshKind, Pid, ProcessRefreshKind, RefreshKind, System};
@@ -88,10 +88,36 @@ impl ProcessCollector {
             self.sys.used_memory() as f64 / self.sys.total_memory() as f64 * 100.0;
 
         let process = self.sys.process(self.pid).unwrap();
+        let cpu_usage = process.cpu_usage() / self.cores as f32;
+
+        // Collect thread stats
+        if let Some(tasks) = process.tasks() {
+            tasks.iter().for_each(|pid| {
+                let Some(thread) = self.sys.process(*pid) else {
+                    return;
+                };
+
+                let pid = pid.to_string();
+                let name = thread.name().to_str().unwrap_or(pid.as_str());
+
+                // Calculate the busy ratio of the thread as a percentage of the CPU usage of
+                // the process.
+                let busy_ratio = if process.cpu_usage() > 0.0 {
+                    thread.cpu_usage() / process.cpu_usage() * 100.0
+                } else {
+                    0.0
+                };
+
+                self.metrics
+                    .thread_usage
+                    .with_label_values(&[pid.as_str(), name])
+                    .set(busy_ratio as f64);
+            });
+        }
+
         let threads = process.tasks().map(|tasks| tasks.len()).unwrap_or(0);
         let open_fds = process.open_files().unwrap_or(0);
         let max_fds = process.open_files_limit().unwrap_or(0);
-        let cpu_usage = process.cpu_usage() / self.cores as f32;
         let resident_memory = process.memory();
         let resident_memory_usage = resident_memory as f64 / self.sys.total_memory() as f64;
         let disk_usage = process.disk_usage().total_written_bytes;
@@ -147,6 +173,8 @@ pub struct ProcessMetrics {
     max_fds: UintGauge,
     /// The total written bytes to disk by the process.
     disk_written_bytes: UintCounter,
+    /// The statistics of the threads used by the process (Linux only).
+    thread_usage: GaugeVec,
 
     /// The duration of the associated collection routine in seconds.
     collection_duration: Gauge,
@@ -212,6 +240,14 @@ impl ProcessMetrics {
             "The total written bytes to disk by the process.",
         )
         .unwrap();
+        let thread_usage: GaugeVec = GaugeVec::new(
+            Opts::new(
+                "process_thread_usage",
+                "Per-thread CPU usage as a percentage of the process's CPU usage (Linux only).",
+            ),
+            &["pid", "name"],
+        )
+        .unwrap();
 
         let collection_duration = Gauge::new(
             "process_collection_duration_seconds",
@@ -234,6 +270,8 @@ impl ProcessMetrics {
         registry.register(Box::new(open_fds.clone())).unwrap();
         registry.register(Box::new(max_fds.clone())).unwrap();
         registry.register(Box::new(disk_written_bytes.clone())).unwrap();
+        registry.register(Box::new(thread_usage.clone())).unwrap();
+
         registry.register(Box::new(collection_duration.clone())).unwrap();
 
         Self {
@@ -250,6 +288,7 @@ impl ProcessMetrics {
             open_fds,
             max_fds,
             disk_written_bytes,
+            thread_usage,
             collection_duration,
         }
     }
@@ -257,16 +296,55 @@ impl ProcessMetrics {
 
 #[cfg(test)]
 mod tests {
-    use std::time::Instant;
+    use std::{hash::Hasher as _, thread, time::Instant};
 
     use super::*;
 
     #[test]
     fn test_process_collector() {
+        let handle = thread::Builder::new()
+            .name("test-thread-1".to_string())
+            .spawn(|| {
+                let mut hasher = std::hash::DefaultHasher::new();
+                let end = Instant::now() + std::time::Duration::from_secs(3);
+
+                // Busy loop with small sleep
+                while Instant::now() < end {
+                    for i in 0..10000 {
+                        hasher.write_u64(i);
+                        std::thread::sleep(std::time::Duration::from_nanos(1));
+                    }
+                }
+
+                println!("test-thread-1: {}", hasher.finish());
+            })
+            .unwrap();
+
+        let handle2 = thread::Builder::new()
+            .name("test-thread-2".to_string())
+            .spawn(|| {
+                let end = Instant::now() + std::time::Duration::from_secs(3);
+                let mut sum = 0u64;
+
+                // Busy loop
+                while Instant::now() < end {
+                    for i in 0..10000 {
+                        sum = sum.wrapping_add(i * i);
+                    }
+                }
+
+                println!("test-thread-2: {}", sum);
+            })
+            .unwrap();
+
         let registry = Registry::new();
         let mut collector = ProcessCollector::new(&registry);
+        collector.collect();
+
+        std::thread::sleep(std::time::Duration::from_secs(1));
         let start = Instant::now();
         collector.collect();
+
         let duration = start.elapsed();
         println!("Time taken for collection: {:?}", duration);
 
@@ -274,5 +352,8 @@ mod tests {
         let encoder = prometheus::TextEncoder::new();
         let body = encoder.encode_to_string(&metrics).unwrap();
         println!("{}", body);
+
+        handle.join().unwrap();
+        handle2.join().unwrap();
     }
 }

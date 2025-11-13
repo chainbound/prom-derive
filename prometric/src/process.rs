@@ -91,14 +91,14 @@ impl ProcessCollector {
         let cpu_usage = process.cpu_usage() / self.cores as f32;
 
         // Collect thread stats
-        process.tasks().map(|tasks| {
+        if let Some(tasks) = process.tasks() {
             tasks.iter().for_each(|pid| {
                 let Some(thread) = self.sys.process(*pid) else {
                     return;
                 };
 
                 let pid = pid.to_string();
-                let name = thread.name().to_str().unwrap_or_else(|| pid.as_str());
+                let name = thread.name().to_str().unwrap_or(pid.as_str());
 
                 // Calculate the busy ratio of the thread as a percentage of the CPU usage of
                 // the process.
@@ -113,7 +113,7 @@ impl ProcessCollector {
                     .with_label_values(&[pid.as_str(), name])
                     .set(busy_ratio as f64);
             });
-        });
+        }
 
         let threads = process.tasks().map(|tasks| tasks.len()).unwrap_or(0);
         let open_fds = process.open_files().unwrap_or(0);

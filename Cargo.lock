@@ -334,7 +334,7 @@ dependencies = [
 
 [[package]]
 name = "prometric"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "hyper",
  "hyper-util",
@@ -345,7 +345,7 @@ dependencies = [
 
 [[package]]
 name = "prometric-derive"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "darling",
  "http-body-util",

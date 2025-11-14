@@ -150,7 +150,6 @@ When the `process` feature is enabled, the `ProcessCollector` can be used to col
 
 ```rust
 use prometric::process::ProcessCollector;
-use prometric_derive::metrics;
 
 let collector = ProcessCollector::default();
 collector.collect();
